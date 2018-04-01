@@ -17,22 +17,22 @@
 		<track name="global.fade">
 			<key row="0" value="1" interpolation="3"/>
 			<key row="16" value="0" interpolation="0"/>
-			<key row="40" value="1" interpolation="3"/>
-			<key row="41" value="0" interpolation="3"/>
-			<key row="42" value="1" interpolation="3"/>
-			<key row="43" value="0" interpolation="3"/>
-			<key row="44" value="1" interpolation="3"/>
-			<key row="45" value="0" interpolation="3"/>
-			<key row="46" value="1" interpolation="3"/>
-			<key row="47" value="0" interpolation="3"/>
-			<key row="48" value="1" interpolation="3"/>
-			<key row="49" value="0" interpolation="3"/>
-			<key row="50" value="1" interpolation="3"/>
-			<key row="51" value="0" interpolation="3"/>
-			<key row="52" value="1" interpolation="3"/>
-			<key row="53" value="0" interpolation="3"/>
-			<key row="54" value="1" interpolation="3"/>
-			<key row="55" value="0" interpolation="0"/>
+			<key row="112" value="1" interpolation="3"/>
+			<key row="113" value="0" interpolation="3"/>
+			<key row="114" value="1" interpolation="3"/>
+			<key row="115" value="0" interpolation="3"/>
+			<key row="116" value="1" interpolation="3"/>
+			<key row="117" value="0" interpolation="3"/>
+			<key row="118" value="1" interpolation="3"/>
+			<key row="119" value="0" interpolation="3"/>
+			<key row="120" value="1" interpolation="3"/>
+			<key row="121" value="0" interpolation="3"/>
+			<key row="122" value="1" interpolation="3"/>
+			<key row="123" value="0" interpolation="3"/>
+			<key row="124" value="1" interpolation="3"/>
+			<key row="125" value="0" interpolation="3"/>
+			<key row="126" value="1" interpolation="3"/>
+			<key row="127" value="0" interpolation="0"/>
 		</track>
 	</tracks>
 	<bookmarks/>
