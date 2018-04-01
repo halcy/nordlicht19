@@ -1,5 +1,5 @@
-build/
-!build/Makefile
+/build/*
+!/build/Makefile
 *~
 *.3dsx
 
