@@ -1,3 +1,5 @@
 build/
+!build/Makefile
 *~
 *.3dsx
+
