@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="512"
+   height="512"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.48.3.1 r9886"
+   sodipodi:docname="foreground.svg"
+   inkscape:export-filename="/home/halcyon/Desktop/3DS/evoke/logo.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90">
+  <defs
+     id="defs4">
+    <linearGradient
+       id="linearGradient5131">
+      <stop
+         style="stop-color:#9f70e0;stop-opacity:1;"
+         offset="0"
+         id="stop5133" />
+      <stop
+         id="stop4076"
+         offset="0.5"
+         style="stop-color:#8bcbc3;stop-opacity:0.58552629;" />
+      <stop
+         style="stop-color:#9f70e0;stop-opacity:1;"
+         offset="1"
+         id="stop5135" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient5131"
+       id="linearGradient5137"
+       x1="203.55081"
+       y1="-10.753942"
+       x2="204.55081"
+       y2="255.92635"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(73.999992,356.36215)" />
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.98994949"
+     inkscape:cx="48.197419"
+     inkscape:cy="362.41012"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0"
+     inkscape:window-width="1366"
+     inkscape:window-height="727"
+     inkscape:window-x="-4"
+     inkscape:window-y="20"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-73.999992,-356.36215)">
+    <rect
+       style="opacity:0.57833338000000001;fill:url(#linearGradient5137);fill-opacity:1;stroke:#ffffff;stroke-width:1;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:9"
+       id="rect4361"
+       width="425.27423"
+       height="275.77164"
+       x="66.928925"
+       y="340.05237" />
+    <rect
+       style="fill:#3d463b;fill-opacity:0.63921570999999999;stroke:none;stroke-width:0.99999994000000003;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:9"
+       id="rect3197"
+       width="441.14142"
+       height="28.529375"
+       x="68.571426"
+       y="368.93365" />
+    <image
+       y="370.54526"
+       x="216.11203"
+       id="image4319"
+       xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGEAAAAXCAYAAAAbfSF/AAAABHNCSVQICAgIfAhkiAAAASRJREFU aIHtmdsSgyAMREmH/87w5dsnOtRqEMMl1pw3xzGJwmYRKDwYAJDuExHNqOM1I4kjE1cXsIpSBSml r3vMPLUWV4IBHquEEH4VsApxEGrGdZUjwztjlKNqOlNPrrtXDTmetyMDiEswAGiVbGlqe88ys6iE o3xbs9S2EmZuitEzfxmLiMiVYIDuxjzS7HrGbo2VUvrMYG0d+XlmDgDgSjBAvOr0tR8aabb0XuGc +bnS9P9ajKv5s7pia4FbtiZb+8Aj2tWoFli+GwActSNtfm9HBrjFIOQZOHtPp6RURe86bjEI/456 G6DVEzR5Zm5Z5JzltSa/ZOquBAPE3qdHI0+jZp107SGdP2h59FZ2K70/fjZ4b0cGWCbvuzFyweFK MMAbdWmWxMGV0DcAAAAASUVORK5CYII= "
+       height="58.928104"
+       width="248.52289" />
+    <rect
+       y="545.95404"
+       x="70.591728"
+       height="28.529375"
+       width="441.14142"
+       id="rect4078"
+       style="fill:#3d463b;fill-opacity:0.63921569000000000;stroke:none;stroke-width:0.99999994000000003;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:9" />
+    <text
+       xml:space="preserve"
+       style="font-size:14.28399944px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1.10000002;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;font-family:Bookman Uralic;-inkscape-font-specification:Sans Bold"
+       x="88.215134"
+       y="550.81934"
+       id="text4080"
+       sodipodi:linespacing="125%"
+       transform="scale(0.99738952,1.0026173)"><tspan
+         sodipodi:role="line"
+         id="tspan4082"
+         x="88.215134"
+         y="550.81934"
+         style="font-size:28.56799889px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1.10000002;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;font-family:UnPilgi;-inkscape-font-specification:UnPilgi Bold">&quot;Makes Good Demos Sometimes&quot;</tspan></text>
+  </g>
+</svg>

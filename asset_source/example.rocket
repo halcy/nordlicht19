@@ -1,0 +1,39 @@
+<sync rows="128">
+	<tracks>
+		<track name="scroller.pos">
+			<key row="0" value="0" interpolation="1"/>
+			<key row="127" value="4000" interpolation="0"/>
+		</track>
+		<track name="scroller.bgpos">
+			<key row="0" value="0" interpolation="2"/>
+			<key row="16" value="1000" interpolation="2"/>
+			<key row="32" value="0" interpolation="2"/>
+			<key row="48" value="1000" interpolation="2"/>
+			<key row="72" value="-5000" interpolation="2"/>
+			<key row="96" value="0" interpolation="2"/>
+			<key row="112" value="1000" interpolation="2"/>
+			<key row="127" value="0" interpolation="0"/>
+		</track>
+		<track name="global.fade">
+			<key row="0" value="1" interpolation="3"/>
+			<key row="16" value="0" interpolation="0"/>
+			<key row="40" value="1" interpolation="3"/>
+			<key row="41" value="0" interpolation="3"/>
+			<key row="42" value="1" interpolation="3"/>
+			<key row="43" value="0" interpolation="3"/>
+			<key row="44" value="1" interpolation="3"/>
+			<key row="45" value="0" interpolation="3"/>
+			<key row="46" value="1" interpolation="3"/>
+			<key row="47" value="0" interpolation="3"/>
+			<key row="48" value="1" interpolation="3"/>
+			<key row="49" value="0" interpolation="3"/>
+			<key row="50" value="1" interpolation="3"/>
+			<key row="51" value="0" interpolation="3"/>
+			<key row="52" value="1" interpolation="3"/>
+			<key row="53" value="0" interpolation="3"/>
+			<key row="54" value="1" interpolation="3"/>
+			<key row="55" value="0" interpolation="0"/>
+		</track>
+	</tracks>
+	<bookmarks/>
+</sync>

@@ -1,0 +1,5 @@
+data/BitStreamReader.h.i
+data/PNG.h.i
+data/PNGSaver.h.i
+data/README.md.i
+data/DeflateReader.h.i

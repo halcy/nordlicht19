@@ -1,0 +1,48 @@
+\[
+C_{pri} = m_e + m_a * s_a + \sum_{i = 0}^{\#lights} a * SpotlightLut[d_0] * f_i * o * (m^{(a)} * l_i^{(a)} + m^{(d)} * l_i^{(d)} * (L_i \cdot N))
+\]
+
+\[
+C_{sec} = \sum_{i = 0}^{\#lights} a * SpotlightLut[d_0] * f_i * o * (m^{(s)}LutD_0[d_1]*G_i^{(0)} + ReflectionLutsRGB[d_2]*LutD_1[d_3]*G_i^{(1)})*l_i^{(s)}
+\]
+
+\[
+C_{alpha} = FresnelLut[d_4]
+\]
+Outputs:
+
+* $C_{pri}$ - GPU primary color
+* $C_{sec}$ - GPU secondary color 
+* $C_{alpha}$ - Primary and/or secondary alpha, target is selectable (fresnel alpha pri / sec)
+
+Inputs, per-fragment:
+
+* $N$ - Interpolated normal
+* $V$ - View direction vector (fragment <-> camera)
+* $T$ - Tangent direction vector
+* $a$ - Distance attenuation factor. I am not sure how that one works. It maybe goes through a LUT also.
+
+Inputs, per-pass:
+
+* $d_{0...4}$ - Selectable LUT inputs - one of the following: $N \cdot H$, $V \cdot H_i$, $N \cdot V$, $L_i \cdot N$, $-L_i \cdot P$, $\cos \phi_i$.
+* $s^{(a)}$ - Scene ambient color
+* $o$ - Shadow attenuation from the shadow map (if there is one)
+
+Inputs, per-material:
+
+* $m^{(e)}$ - Material emission color
+* $m^{(a)}$ - Material ambient color
+* $m^{(d)}$ - Material diffuse color
+* $m^{(s)}$ - Material specular color
+
+Inputs, Per-Light:
+
+* $P_i$ - Spotlight direction
+* $L_i$ - Light direction vector (fragment <-> light)
+* $H_i$ - Half-vector between $L$ and $V$
+* $\phi_i$ - Angle between the projection of $H_i$ into the tangent plane and $T$
+* $f_i$ - 0 if $N \cdot L < 0$ and negative lighting = false, otherwise 1
+* $l_i^{(a)}$ - Light ambient color
+* $l_i^{(d)}$ - Light diffuse color
+* $l_i^{(s)}$ - Light specular color
+* $G_i^{(0)}, G_i^{(1)}$ - Cook-Torrance geometric factor, or 1 when disabled

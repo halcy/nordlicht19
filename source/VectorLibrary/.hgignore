@@ -1,0 +1,3 @@
+glob:.DS_Store
+glob:*.o
+
