@@ -4,7 +4,7 @@
 
 // define SYNC_PLAYER here, if desired.
 // remember to make clean, if you do
-#define SYNC_PLAYER
+// #define SYNC_PLAYER
 
 #ifndef SYNC_H
 #define SYNC_H

@@ -15,7 +15,14 @@ float fadeVal;
 #define max(a, b) (((a)>(b))?(a):(b))
 
 #define AUDIO_BUFSIZE 1024
-#define SAMPLES_PER_ROW 2048
+
+#define SONG_BPM 110.0
+#define SONG_BPS (SONG_BPM / 60.0)
+#define SONG_SPS 32000
+#define SONG_SPB (SONG_SPS / SONG_BPS)
+
+#define ROWS_PER_BEAT 8
+#define SAMPLES_PER_ROW (SONG_SPB / ROWS_PER_BEAT)
 
 int32_t sample_pos = 0;
 ndspWaveBuf wave_buffer[2];
@@ -127,7 +134,7 @@ int main() {
     ndspSetOutputMode(NDSP_OUTPUT_STEREO);
 
     ndspChnSetInterp(0, NDSP_INTERP_LINEAR);
-    ndspChnSetRate(0, 32000);
+    ndspChnSetRate(0, SONG_SPS);
     ndspChnSetFormat(0, NDSP_FORMAT_MONO_PCM16);
     
     float mix[12];
