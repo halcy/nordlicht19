@@ -60,7 +60,8 @@ static int valid_path_char(char ch)
 
 static const char *path_encode(const char *path)
 {
-	static char temp[FILENAME_MAX];
+    return(path);
+	/*static char temp[FILENAME_MAX];
 	int i, pos = 0;
 	int path_len = (int)strlen(path);
 	for (i = 0; i < path_len; ++i) {
@@ -81,7 +82,7 @@ static const char *path_encode(const char *path)
 	}
 
 	temp[pos] = '\0';
-	return temp;
+	return temp;*/
 }
 
 static const char *sync_track_path(const char *base, const char *name)
@@ -221,7 +222,7 @@ struct sync_device *sync_create_device(const char *base)
 	if (!d)
 		return NULL;
 
-	if (!base || base[0] == '/')
+	if (!base)
 		return NULL;
 
 	d->base = strdup(path_encode(base));

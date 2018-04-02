@@ -101,7 +101,7 @@ endef
 
 # Binary from elf build rule
 %.3dsx: %.elf
-	3dsxtool $< $@ --smdh=$(BASEDIR)build/$(TARGET).smdh $(_3DSXFLAGS)
+	3dsxtool $< --smdh=$(BASEDIR)build/$(TARGET).smdh --romfs=$(BASEDIR)romfs/ $(_3DSXFLAGS) $@
 
 # Linking rule
 %.elf: 3dsx_crt0.o

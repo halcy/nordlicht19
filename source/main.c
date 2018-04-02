@@ -26,6 +26,7 @@ double audio_get_row() {
     return (double)sample_pos / (double)SAMPLES_PER_ROW;
 }
 
+#ifndef SYNC_PLAYER
 void audio_pause(void *ignored, int flag) {
    ignored;
    audio_playing = !flag;
@@ -45,6 +46,7 @@ struct sync_cb rocket_callbakcks = {
     audio_set_row,
     audio_is_playing
 };
+#endif
 
 #define ROCKET_HOST "172.20.10.7"
 #define SOC_ALIGN 0x1000
@@ -53,6 +55,7 @@ struct sync_cb rocket_callbakcks = {
 static uint32_t *SOC_buffer = NULL;
 
 int connect_rocket() {
+#ifndef SYNC_PLAYER
     while(sync_tcp_connect(rocket, ROCKET_HOST, SYNC_DEFAULT_PORT)) {
         printf("Didn't work, again...\n");
         hidScanInput();
@@ -62,6 +65,7 @@ int connect_rocket() {
         }
         svcSleepThread(1000*1000*1000);
     }
+#endif
     return(0);
 }
 
@@ -100,11 +104,19 @@ int main() {
     InitialiseBitmap(&fadeBitmap, SCREEN_TEXTURE_WIDTH, SCREEN_TEXTURE_HEIGHT, BytesPerRowForWidth(SCREEN_TEXTURE_WIDTH), fadePixels);
     C3D_TexInit(&fade_tex, SCREEN_TEXTURE_HEIGHT, SCREEN_TEXTURE_WIDTH, GPU_RGBA8);
 
+    romfsInit();
+    
     // Rocket startup
+#ifndef SYNC_PLAYER
     printf("Now socketing...\n");
     SOC_buffer = (u32*)memalign(SOC_ALIGN, SOC_BUFFERSIZE);
     socInit(SOC_buffer, SOC_BUFFERSIZE);
-    rocket = sync_create_device("sync");
+    
+    rocket = sync_create_device("sdmc:/sync");
+#else
+    printf("Loading tracks from romfs...");
+    rocket = sync_create_device("romfs:/sync");
+#endif
     if(connect_rocket()) {
         return(0);
     }
@@ -151,13 +163,15 @@ int main() {
             row = ((double)fc * (32000.0 / 30.0)) / (double)SAMPLES_PER_ROW;
         }
         
+#ifndef SYNC_PLAYER
         if(sync_update(rocket, (int)floor(row), &rocket_callbakcks, (void *)0)) {
             printf("Lost connection, retrying.\n");
             if(connect_rocket()) {
                 return(0);
             }
         }
-        
+#endif
+
         fadeVal = sync_get_val(sync_fade, row);
         
         FillBitmap(&fadeBitmap, RGBAf(1.0, 1.0, 1.0, fadeVal));
