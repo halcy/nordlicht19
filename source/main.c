@@ -156,7 +156,7 @@ int main() {
     ndspChnWaveBufAdd(0, &wave_buffer[1]);
     
     // Start up first effect
-    effectScrollerInit();
+    effectTunnelInit();
     
     const struct sync_track* sync_fade = sync_get_track(rocket, "global.fade");;
     
@@ -196,7 +196,7 @@ int main() {
         float slider = osGet3DSliderState();
         float iod = slider / 3.0;
         
-        effectScrollerRender(targetLeft, targetRight, iod, row);
+        effectTunnelRender(targetLeft, targetRight, iod, row);
         
         gspWaitForP3D();
         gspWaitForPPF();

@@ -2,8 +2,6 @@
 #3DS_IP := 192.168.6.217
 3DS_IP := 172.20.10.8
 
-CITRA := /home/halcyon/Desktop/3DS/citra/build/src/citra_qt/citra-qt
-
 all: upload
 
 clean:
