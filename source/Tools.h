@@ -84,10 +84,10 @@ inline void setVert(vertex* vert, vec3_t p, vec2_t t) {
 inline int buildQuad(vertex* vert, vec3_t a, vec3_t b, vec3_t c, vec3_t d, vec2_t ta, vec2_t tb, vec2_t tc, vec2_t td) {
         setVert(vert, a, ta); vert++;
         setVert(vert, b, tb); vert++;
-        setVert(vert, c, td); vert++;        
+        setVert(vert, c, tc); vert++;        
         setVert(vert, a, ta); vert++;
-        setVert(vert, c, td); vert++;
-        setVert(vert, d, tc); vert++;
+        setVert(vert, c, tc); vert++;
+        setVert(vert, d, td); vert++;
         
         return 6;
 }

@@ -27,11 +27,6 @@ static C3D_LightEnv lightEnv;
 static C3D_Light light;
 static C3D_LightLut lutPhong;
 
-int32_t vertCount;
-int32_t vertCountMetaballs;
-static vertex* vboVerts;
-float* valueGrid;
-
 #include "Font.h"
 #include "MonoFont.h"
 
@@ -54,70 +49,9 @@ static const C3D_Material lightMaterial = {
     { 0.0f, 0.1f, 0.0f }, //emission
 };
 
-static void* tunnelVBO;
-static const vertex vertices[] =
-{
-    // First face (PZ)
-    // First triangle
-    { {-0.5f, -0.5f, +0.5f}, {0.0f, 0.0f}, {0.0f, 0.0f, +1.0f} },
-    { {+0.5f, -0.5f, +0.5f}, {1.0f, 0.0f}, {0.0f, 0.0f, +1.0f} },
-    { {+0.5f, +0.5f, +0.5f}, {1.0f, 1.0f}, {0.0f, 0.0f, +1.0f} },
-    // Second triangle
-    { {+0.5f, +0.5f, +0.5f}, {1.0f, 1.0f}, {0.0f, 0.0f, +1.0f} },
-    { {-0.5f, +0.5f, +0.5f}, {0.0f, 1.0f}, {0.0f, 0.0f, +1.0f} },
-    { {-0.5f, -0.5f, +0.5f}, {0.0f, 0.0f}, {0.0f, 0.0f, +1.0f} },
-
-    // Second face (MZ)
-    // First triangle
-    { {-0.5f, -0.5f, -0.5f}, {0.0f, 0.0f}, {0.0f, 0.0f, -1.0f} },
-    { {-0.5f, +0.5f, -0.5f}, {1.0f, 0.0f}, {0.0f, 0.0f, -1.0f} },
-    { {+0.5f, +0.5f, -0.5f}, {1.0f, 1.0f}, {0.0f, 0.0f, -1.0f} },
-    // Second triangle
-    { {+0.5f, +0.5f, -0.5f}, {1.0f, 1.0f}, {0.0f, 0.0f, -1.0f} },
-    { {+0.5f, -0.5f, -0.5f}, {0.0f, 1.0f}, {0.0f, 0.0f, -1.0f} },
-    { {-0.5f, -0.5f, -0.5f}, {0.0f, 0.0f}, {0.0f, 0.0f, -1.0f} },
-
-    // Third face (PX)
-    // First triangle
-    { {+0.5f, -0.5f, -0.5f}, {0.0f, 0.0f}, {+1.0f, 0.0f, 0.0f} },
-    { {+0.5f, +0.5f, -0.5f}, {1.0f, 0.0f}, {+1.0f, 0.0f, 0.0f} },
-    { {+0.5f, +0.5f, +0.5f}, {1.0f, 1.0f}, {+1.0f, 0.0f, 0.0f} },
-    // Second triangle
-    { {+0.5f, +0.5f, +0.5f}, {1.0f, 1.0f}, {+1.0f, 0.0f, 0.0f} },
-    { {+0.5f, -0.5f, +0.5f}, {0.0f, 1.0f}, {+1.0f, 0.0f, 0.0f} },
-    { {+0.5f, -0.5f, -0.5f}, {0.0f, 0.0f}, {+1.0f, 0.0f, 0.0f} },
-
-    // Fourth face (MX)
-    // First triangle
-    { {-0.5f, -0.5f, -0.5f}, {0.0f, 0.0f}, {-1.0f, 0.0f, 0.0f} },
-    { {-0.5f, -0.5f, +0.5f}, {1.0f, 0.0f}, {-1.0f, 0.0f, 0.0f} },
-    { {-0.5f, +0.5f, +0.5f}, {1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f} },
-    // Second triangle
-    { {-0.5f, +0.5f, +0.5f}, {1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f} },
-    { {-0.5f, +0.5f, -0.5f}, {0.0f, 1.0f}, {-1.0f, 0.0f, 0.0f} },
-    { {-0.5f, -0.5f, -0.5f}, {0.0f, 0.0f}, {-1.0f, 0.0f, 0.0f} },
-
-    // Fifth face (PY)
-    // First triangle
-    { {-0.5f, +0.5f, -0.5f}, {0.0f, 0.0f}, {0.0f, +1.0f, 0.0f} },
-    { {-0.5f, +0.5f, +0.5f}, {1.0f, 0.0f}, {0.0f, +1.0f, 0.0f} },
-    { {+0.5f, +0.5f, +0.5f}, {1.0f, 1.0f}, {0.0f, +1.0f, 0.0f} },
-    // Second triangle
-    { {+0.5f, +0.5f, +0.5f}, {1.0f, 1.0f}, {0.0f, +1.0f, 0.0f} },
-    { {+0.5f, +0.5f, -0.5f}, {0.0f, 1.0f}, {0.0f, +1.0f, 0.0f} },
-    { {-0.5f, +0.5f, -0.5f}, {0.0f, 0.0f}, {0.0f, +1.0f, 0.0f} },
-
-    // Sixth face (MY)
-    // First triangle
-    { {-0.5f, -0.5f, -0.5f}, {0.0f, 0.0f}, {0.0f, -1.0f, 0.0f} },
-    { {+0.5f, -0.5f, -0.5f}, {1.0f, 0.0f}, {0.0f, -1.0f, 0.0f} },
-    { {+0.5f, -0.5f, +0.5f}, {1.0f, 1.0f}, {0.0f, -1.0f, 0.0f} },
-    // Second triangle
-    { {+0.5f, -0.5f, +0.5f}, {1.0f, 1.0f}, {0.0f, -1.0f, 0.0f} },
-    { {-0.5f, -0.5f, +0.5f}, {0.0f, 1.0f}, {0.0f, -1.0f, 0.0f} },
-    { {-0.5f, -0.5f, -0.5f}, {0.0f, 0.0f}, {0.0f, -1.0f, 0.0f} },
-};
-#define vertexCount (sizeof(vertices)/sizeof(vertices[0]))
+static vertex* tunnelVBO;
+int32_t vertCount;
+#define MAX_VERTS 30000
 
 // EXTREMELY simple scroller
 void effectTunnelInit() {
@@ -146,12 +80,11 @@ void effectTunnelInit() {
     C3D_TexSetFilter(&logo_tex, GPU_LINEAR, GPU_NEAREST);
     
     // Create the VBO
-    tunnelVBO = linearAlloc(sizeof(vertices));
-    memcpy(tunnelVBO, vertices, sizeof(vertices));
+    tunnelVBO = (vertex*)linearAlloc(sizeof(vertex) * MAX_VERTS);
     
     C3D_BufInfo* bufInfo = C3D_GetBufInfo();
     BufInfo_Init(bufInfo);
-    BufInfo_Add(bufInfo, tunnelVBO, sizeof(vertex), 3, 0x210);
+    BufInfo_Add(bufInfo, (void*)tunnelVBO, sizeof(vertex), 3, 0x210);
     
     C3D_LightEnvInit(&lightEnv);
     C3D_LightEnvBind(&lightEnv);
@@ -165,7 +98,10 @@ void effectTunnelInit() {
 
 static void effectTunnelDraw(float iod, float time) {
     C3D_BindProgram(&program);
-
+    
+    // Set GPU state
+    // C3D_DepthTest(true, GPU_GEQUAL, GPU_WRITE_ALL);
+    
     // Get the location of the uniforms
     uLocProjection = shaderInstanceGetUniformLocation(program.vertexShader, "projection");
     uLocModelview = shaderInstanceGetUniformLocation(program.vertexShader, "modelView");
@@ -182,27 +118,44 @@ static void effectTunnelDraw(float iod, float time) {
     
     // Probably 3D here
     C3D_TexEnv* env = C3D_GetTexEnv(0);
+    C3D_TexEnvInit(env);
     C3D_TexEnvSrc(env, C3D_Both, GPU_TEXTURE0, GPU_PRIMARY_COLOR, 0);
-    C3D_TexEnvOp(env, C3D_Both, 0, 0, 0);
     C3D_TexEnvFunc(env, C3D_Both, GPU_MODULATE);
     
     // Compute new modelview
     C3D_Mtx modelview;
     Mtx_Identity(&modelview);
-    Mtx_Translate(&modelview, 0.0, 0.0, -2.0, true);
-    Mtx_RotateX(&modelview, time * 0.001, true);
-    Mtx_RotateY(&modelview, time * 0.002, true);
+    Mtx_Translate(&modelview, 0.0, 0.0, -1.0, true);
+    Mtx_RotateZ(&modelview, time * 0.0005, true);
     
     // Send matrices
     C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLocProjection, &projection);
     C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLocModelview,  &modelview);
 
     // Bind a texture
-    C3D_TexSetFilter(&logo_tex, GPU_LINEAR, GPU_LINEAR);
+    C3D_TexSetFilter(&screen_tex, GPU_LINEAR, GPU_LINEAR);
     C3D_TexBind(0, &logo_tex);
     
+    // Stream some new verts
+    int vertCount = 0;
+    for(int i = 0; i < 10; i++) {
+        float xs = sin(i * 1031.0);
+        float ys = cos(i * 1031.0);
+        vertCount += buildQuad(
+            &tunnelVBO[vertCount], 
+            vec3(-0.5, -0.5, -i * 0.4),
+            vec3( 0.5, -0.5, -i * 0.4),
+            vec3( 0.5,  0.5, -i * 0.4),
+            vec3(-0.5,  0.5, -i * 0.4),
+            vec2(0, 0),
+            vec2(1, 0),
+            vec2(1, 1),
+            vec2(0, 1)
+        );
+    }
+    
     // Draw the VBO
-    C3D_DrawArrays(GPU_TRIANGLES, 0, vertexCount);
+    C3D_DrawArrays(GPU_TRIANGLES, 0, vertCount);
 }
 
 void effectTunnelRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRight, float iod, float row) {
@@ -247,6 +200,7 @@ void effectTunnelRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRi
     
     // Left eye
     C3D_FrameDrawOn(targetLeft);
+    C3D_RenderTargetClear(targetLeft, C3D_CLEAR_ALL, 0x68B0D8FF, 0);
     
     // Background
     fullscreenQuad(screen_tex, -iod, 1.0 / 10.0);
@@ -265,7 +219,8 @@ void effectTunnelRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRi
     if(iod > 0.0) {
         // Right eye
         C3D_FrameDrawOn(targetRight);
-    
+        C3D_RenderTargetClear(targetRight, C3D_CLEAR_ALL, 0x68B0D8FF, 0);
+        
         // Background
         fullscreenQuad(screen_tex, iod, 1.0 / 10.0);
         
