@@ -10,6 +10,7 @@ DESC := demo basecode
 BUILD := $(BASEDIR)/build
 SOURCES := $(BASEDIR)/source $(BASEDIR)/source/VectorLibrary $(BASEDIR)/source/Rocket
 DATA := $(BASEDIR)/data
+#ASSETS := $(BASEDIR)/asset_source
 
 # Libraries
 LIBDIRS := $(DEVKITPRO)/libctru
@@ -42,6 +43,7 @@ CFILES := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
 PICAFILES := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.v.pica)))
 SHLISTFILES := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.shlist)))
 BINFILES := $(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
+#PNGFILES := $(foreach dir,$(ASSETS),$(notdir $(wildcard $(dir)/*.png)))
 
 # Output file
 OUTPUT := $(CURDIR)/$(TARGET)
@@ -75,7 +77,7 @@ clean:
 	echo "extern const u8" `(echo $(<F) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`"_end[];" > `(echo $(<F) | tr . _)`.h
 	echo "extern const u8" `(echo $(<F) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`"[];" >> `(echo $(<F) | tr . _)`.h
 	echo "extern const u32" `(echo $(<F) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`_size";" >> `(echo $(<F) | tr . _)`.h
-	
+
 # GPU shader assembly.
 define shader-as
 	$(eval CURBIN := $(patsubst %.shbin.o,%.shbin,$(notdir $@)))

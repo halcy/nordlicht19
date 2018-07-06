@@ -9,6 +9,7 @@
 #include "Tools.h"
 #include <vshader_shbin.h>
 #include "logo_bin.h"
+#include "tunnel_glow_bin.h"
 #include "Perlin.h"
 
 static DVLB_s* vshader_dvlb;
@@ -22,10 +23,13 @@ static Pixel* screenPixels;
 static Bitmap screen;
 static C3D_Tex screen_tex;
 static C3D_Tex logo_tex;
+static C3D_Tex tunnel_glow_tex;
 
 static C3D_LightEnv lightEnv;
 static C3D_Light light;
 static C3D_LightLut lutPhong;
+
+static C3D_FogLut fog_Lut;
 
 #include "Font.h"
 #include "MonoFont.h"
@@ -79,6 +83,11 @@ void effectTunnelInit() {
     C3D_TexUpload(&logo_tex, logo_bin);
     C3D_TexSetFilter(&logo_tex, GPU_LINEAR, GPU_NEAREST);
     
+    // Tunnel texture
+    C3D_TexInit(&tunnel_glow_tex, SCREEN_TEXTURE_HEIGHT, SCREEN_TEXTURE_WIDTH, GPU_RGBA8);
+    C3D_TexUpload(&tunnel_glow_tex, tunnel_glow_bin);
+    C3D_TexSetFilter(&tunnel_glow_tex, GPU_LINEAR, GPU_NEAREST);
+    
     // Create the VBO
     tunnelVBO = (vertex*)linearAlloc(sizeof(vertex) * MAX_VERTS);
     
@@ -114,48 +123,152 @@ static void effectTunnelDraw(float iod, float time) {
     AttrInfo_AddLoader(attrInfo, 2, GPU_FLOAT, 3); // v2 = normal
 
     // Compute the projection matrix
-    Mtx_PerspStereoTilt(&projection, 65.0f*M_PI/180.0f, 400.0f/240.0f, 0.2f, 30.0f, iod, 2.0f, false);
+    Mtx_PerspStereoTilt(&projection, 65.0f*M_PI/180.0f, 400.0f/240.0f, 0.2f, 500.0f, iod, 2.0f, false);
     
     // Probably 3D here
+    
+    // Bind a texture
+    C3D_TexSetFilter(&tunnel_glow_tex, GPU_LINEAR, GPU_NEAREST);
+    C3D_TexSetFilterMipmap(&tunnel_glow_tex, GPU_LINEAR);
+    C3D_TexSetWrap(&tunnel_glow_tex, GPU_REPEAT, GPU_REPEAT);
+    C3D_TexBind(0, &tunnel_glow_tex);
+    
+    // Set up texenv
     C3D_TexEnv* env = C3D_GetTexEnv(0);
-    C3D_TexEnvInit(env);
     C3D_TexEnvSrc(env, C3D_Both, GPU_TEXTURE0, GPU_PRIMARY_COLOR, 0);
     C3D_TexEnvFunc(env, C3D_Both, GPU_MODULATE);
+    
+    // Set up fog
+    FogLut_Exp(&fog_Lut, 0.05f, 1.5f, 0.2f, 500.0f);
+    C3D_FogGasMode(GPU_FOG, GPU_PLAIN_DENSITY, false);
+    C3D_FogColor(0x00000000);
+    C3D_FogLutBind(&fog_Lut);
     
     // Compute new modelview
     C3D_Mtx modelview;
     Mtx_Identity(&modelview);
-    Mtx_Translate(&modelview, 0.0, 0.0, -1.0, true);
-    Mtx_RotateZ(&modelview, time * 0.0005, true);
+    Mtx_Translate(&modelview, 0.0, 0.0, 5.0 + time * 0.01, true);
+    //Mtx_RotateZ(&modelview, time * 0.0005, true);
     
     // Send matrices
     C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLocProjection, &projection);
     C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLocModelview,  &modelview);
 
-    // Bind a texture
-    C3D_TexSetFilter(&screen_tex, GPU_LINEAR, GPU_LINEAR);
-    C3D_TexBind(0, &logo_tex);
+    C3D_CullFace(GPU_CULL_NONE);
     
     // Stream some new verts
     int vertCount = 0;
-    for(int i = 0; i < 10; i++) {
-        float xs = sin(i * 1031.0);
-        float ys = cos(i * 1031.0);
+    float beam_step = 1.0;
+    float beam_rad = 1.0;;
+    float beam_len = 100.0;
+    float beam_offset = 5.0;
+    
+    srand(42);
+    for(int i = 50; i >= 0; i--) {
+        float seed = (float)rand() / 1000000.0;
+        float cx = sin(seed);
+        float cy = cos(seed);
+        float ocx = cy;
+        float ocy = -cx;
+        float rcx = cx;
+        float rcy = cy;
+        
+        cx *= beam_offset;
+        cy *= beam_offset;
+        ocx *= beam_len;
+        ocy *= beam_len;
+        rcx *= beam_rad;
+        rcy *= beam_rad;
+        
+        float xa = cx  - ocx + rcx;
+        float ya = cy  - ocy + rcy;
+        
+        float xb = cx  + ocx + rcx;
+        float yb = cy  + ocy + rcy;
+        
+        float xc = cx  + ocx - rcx;
+        float yc = cy  + ocy - rcy;
+        
+        float xd = cx  - ocx - rcx;
+        float yd = cy  - ocy - rcy;
+        
         vertCount += buildQuad(
             &tunnelVBO[vertCount], 
-            vec3(-0.5, -0.5, -i * 0.4),
-            vec3( 0.5, -0.5, -i * 0.4),
-            vec3( 0.5,  0.5, -i * 0.4),
-            vec3(-0.5,  0.5, -i * 0.4),
-            vec2(0, 0),
-            vec2(1, 0),
-            vec2(1, 1),
-            vec2(0, 1)
+            vec3(xa, ya, -i * beam_step),
+            vec3(xb, yb, -i * beam_step),
+            vec3(xc, yc, -i * beam_step),
+            vec3(xd, yd, -i * beam_step),
+            vec2(1.0, 0.5),
+            vec2(0.5, 0.5),
+            vec2(0.5, 1.0),
+            vec2(1.0, 1.0)
+        );
+        
+        vertCount += buildQuad(
+            &tunnelVBO[vertCount], 
+            vec3(xa, ya, -i * beam_step),
+            vec3(xb, yb, -i * beam_step),
+            vec3(xc, yc, -i * beam_step),
+            vec3(xd, yd, -i * beam_step),
+            vec2(beam_len / 2.0, 0.0),
+            vec2(0.0, 0.0),
+            vec2(0.0, 0.5),
+            vec2(beam_len / 2.0, 0.5)
         );
     }
+    int vertCountGlowy = vertCount;
     
-    // Draw the VBO
-    C3D_DrawArrays(GPU_TRIANGLES, 0, vertCount);
+//     srand(42);
+//     for(int i = 300; i >= 0; i--) {
+//         float seed = (float)rand() / 1000000.0;
+//         float cx = sin(seed);
+//         float cy = cos(seed);
+//         float ocx = cy;
+//         float ocy = -cx;
+//         float rcx = cx;
+//         float rcy = cy;
+//         
+//         cx *= beam_offset;
+//         cy *= beam_offset;
+//         ocx *= beam_len;
+//         ocy *= beam_len;
+//         rcx *= beam_rad;
+//         rcy *= beam_rad;
+//         
+//         float xa = cx  - ocx + rcx;
+//         float ya = cy  - ocy + rcy;
+//         
+//         float xb = cx  + ocx + rcx;
+//         float yb = cy  + ocy + rcy;
+//         
+//         float xc = cx  + ocx - rcx;
+//         float yc = cy  + ocy - rcy;
+//         
+//         float xd = cx  - ocx - rcx;
+//         float yd = cy  - ocy - rcy;
+//         
+//         vertCount += buildQuad(
+//             &tunnelVBO[vertCount], 
+//             vec3(xa, ya, -i * beam_step),
+//             vec3(xb, yb, -i * beam_step),
+//             vec3(xc, yc, -i * beam_step),
+//             vec3(xd, yd, -i * beam_step),
+//             vec2(beam_len / 2.0, 0.0),
+//             vec2(0.0, 0.0),
+//             vec2(0.0, 0.5),
+//             vec2(beam_len / 2.0, 0.5)
+//         );
+//     }
+    
+    for(int i = 0; i < vertCount; i += 12) {
+        // Additive blend glowy stuff
+        C3D_AlphaBlend(GPU_BLEND_ADD, GPU_BLEND_ADD, GPU_SRC_ALPHA, GPU_ONE, GPU_SRC_ALPHA, GPU_ONE);
+        C3D_DrawArrays(GPU_TRIANGLES, i, i+6);
+        
+        // Normal blend nonglowy stuff
+        C3D_AlphaBlend(GPU_BLEND_ADD, GPU_BLEND_ADD, GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA);
+        C3D_DrawArrays(GPU_TRIANGLES, i+6, i+12);
+    }
 }
 
 void effectTunnelRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRight, float iod, float row) {
@@ -200,10 +313,10 @@ void effectTunnelRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRi
     
     // Left eye
     C3D_FrameDrawOn(targetLeft);
-    C3D_RenderTargetClear(targetLeft, C3D_CLEAR_ALL, 0x68B0D8FF, 0);
+//     C3D_RenderTargetClear(targetLeft, C3D_CLEAR_ALL, 0x68B0D8FF, 0);
     
     // Background
-    fullscreenQuad(screen_tex, -iod, 1.0 / 10.0);
+//     fullscreenQuad(screen_tex, -iod, 1.0 / 10.0);
     
     // Actual scene (empty in this, but you could!)
     effectTunnelDraw(-iod, bg_time);
@@ -219,10 +332,10 @@ void effectTunnelRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRi
     if(iod > 0.0) {
         // Right eye
         C3D_FrameDrawOn(targetRight);
-        C3D_RenderTargetClear(targetRight, C3D_CLEAR_ALL, 0x68B0D8FF, 0);
+//         C3D_RenderTargetClear(targetRight, C3D_CLEAR_ALL, 0x68B0D8FF, 0);
         
         // Background
-        fullscreenQuad(screen_tex, iod, 1.0 / 10.0);
+//         fullscreenQuad(screen_tex, iod, 1.0 / 10.0);
         
         // Actual scene
         effectTunnelDraw(iod, bg_time);
