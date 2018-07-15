@@ -11,7 +11,7 @@
 #include "cubes_bin.h"
 #include "Perlin.h"
 
-#define METABALLS_MAX_VERTS 200000
+#define METABALLS_MAX_VERTS 140000
 
 static DVLB_s* vshader_dvlb;
 static shaderProgram_s program;
@@ -36,6 +36,11 @@ static C3D_Tex logo_tex;
 int32_t vertCount;
 static vertex* vboVerts;
 
+const struct sync_track* sync_obj_sel;
+const struct sync_track* sync_rot_int;
+const struct sync_track* sync_rot_ext;
+const struct sync_track* sync_col;
+
 #define GRID_X 11
 #define GRID_Y 11
 #define GRID_Z 11
@@ -59,6 +64,12 @@ static inline float metaball(float x, float y, float z, float cx, float cy, floa
 
 // Metablobbies
 void effectMetaobjectsInit() {
+    // Rocket tracks
+    sync_obj_sel = sync_get_track(rocket, "meta.object");
+    sync_rot_int = sync_get_track(rocket, "meta.rot_int");
+    sync_rot_ext = sync_get_track(rocket, "meta.rot_ext");
+    sync_col = sync_get_track(rocket, "meta.col");
+    
     // Load default shader
     vshader_dvlb = DVLB_ParseFile((u32*)vshader_shbin, vshader_shbin_size);
     shaderProgramInit(&program);
@@ -79,18 +90,12 @@ void effectMetaobjectsInit() {
     C3D_TexSetFilter(&logo_tex, GPU_LINEAR, GPU_NEAREST);
 }
 
-static inline float field(float xx, float yy, float zz, float* xa, float* ya, float* za, int bc, float time) {
+static inline float field(float xx, float yy, float zz, float* xa, float* ya, float* za, int bc) {
     float val = 0.0;
     for(int i = 0; i < bc; i++) {
         val += metaball(xx, yy, zz, xa[i], ya[i], za[i]);
     }
 
-    /*float border = fmax(fmax(
-        abs((xx - (float)GRID_OFFSET) * 3.1), 
-        abs((yy - (float)GRID_OFFSET) * 3.1)), 
-        abs((zz - (float)GRID_OFFSET) * 3.1));
-    //val = fmax(-(val - 16.0 * (sin(time * 0.05) * 0.5)), border - 0.5);
-    val = fmax(-(val - 4.0), border - 0.5);*/
     return(fmin(val / 10.0, 1.0));
 }
 
@@ -109,43 +114,92 @@ static inline float field_box(float xx, float yy, float zz) {
     return dd < 0.0 ? fabs(dd) * 8.0 : 0.0;
 }
 
-void effectMetaobjectsPrepare(float time) {    
+void effectMetaobjectsPrepare(float row) {    
     // Movement.
     float movescale = 0.1;
     
-    float xpos = GRID_OFFSET + cos(time * 0.3 * movescale) / 3.0;
-    float ypos = GRID_OFFSET + sin(time * 0.2 * movescale) / 2.0;
-    float zpos = GRID_OFFSET + sin(time * 0.36 * movescale) / 2.5;
+    float xpos = GRID_OFFSET + cos(row * 0.3 * movescale) / 3.0;
+    float ypos = GRID_OFFSET + sin(row * 0.2 * movescale) / 2.0;
+    float zpos = GRID_OFFSET + sin(row * 0.36 * movescale) / 2.5;
 
-    float xpos2 = GRID_OFFSET + sin(time * 0.22 * movescale) / 2.0;
-    float ypos2 = GRID_OFFSET + cos(time * 0.07 * movescale) / 3.0;
-    float zpos2 = GRID_OFFSET + cos(time * 0.19 * movescale) / 2.4;
+    float xpos2 = GRID_OFFSET + sin(row * 0.22 * movescale) / 2.0;
+    float ypos2 = GRID_OFFSET + cos(row * 0.07 * movescale) / 3.0;
+    float zpos2 = GRID_OFFSET + cos(row * 0.19 * movescale) / 2.4;
 
     float xa[2] = {xpos, xpos2};
     float ya[2] = {ypos, ypos2};
     float za[2] = {zpos, zpos2};
     vertCount = 0;
     
-    mat3x3_t rot = mat3x3rotatez(time * 0.05);
-    rot = mat3x3mul(rot, mat3x3rotatex(time * 0.025));
+    float rot_val = sync_get_val(sync_rot_int, row);
+    mat3x3_t rot = mat3x3rotatez(rot_val * 0.05);
+    rot = mat3x3mul(rot, mat3x3rotatex(rot_val * 0.025));
+    
+    int field_type = (int)sync_get_val(sync_obj_sel, row);
+    int col_offset = (int)sync_get_val(sync_col, row);
     
     srand(666);
-    for(int x = 0; x < GRID_X; x++) {
-        for(int y = 0; y < GRID_Y; y++) {
-            for(int z = 0; z < GRID_Z; z++) {
-                float xx = (float)x * GRID_STEP;
-                float yy = (float)y * GRID_STEP;
-                float zz = (float)z * GRID_STEP;
-//                 float rad = field(xx, yy, zz, xa, ya, za, 2, time);
-                vec3_t pv = vec3(xx - GRID_OFFSET, yy - GRID_OFFSET, zz - GRID_OFFSET);
-                pv = mat3x3transform(rot, pv);
-                float rad = field_box(pv.x, pv.y, pv.z);
-                
-                int cubec = rand() % 4;
-                float hh = cubec >= 2 ? 0.5 : 0.0;
-                float vv = cubec % 2 == 0 ? 0.0 : 0.5;
-                if(rad > 0.5) {
-                    vertCount += buildCube(&vboVerts[vertCount], vec3(xx * 1.0, yy * 1.0, zz * 1.0), rad * 0.03, hh, vv);
+    if(field_type == 0) {
+        for(int x = 0; x < GRID_X; x++) {
+            for(int y = 0; y < GRID_Y; y++) {
+                for(int z = 0; z < GRID_Z; z++) {
+                    float xx = (float)x * GRID_STEP;
+                    float yy = (float)y * GRID_STEP;
+                    float zz = (float)z * GRID_STEP;
+
+                    float rad = field(xx, yy, zz, xa, ya, za, 2);
+                    int cubec = (rand() + col_offset) % 4;
+                    float hh = cubec >= 2 ? 0.5 : 0.0;
+                    float vv = cubec % 2 == 0 ? 0.0 : 0.5;
+                    if(rad > 0.5) {
+                        vertCount += buildCube(&vboVerts[vertCount], vec3(xx * 1.0, yy * 1.0, zz * 1.0), rad * 0.03, hh, vv);
+                    }
+                }
+            }
+        }
+    }
+    
+    if(field_type == 1) {
+        for(int x = 0; x < GRID_X; x++) {
+            for(int y = 0; y < GRID_Y; y++) {
+                for(int z = 0; z < GRID_Z; z++) {
+                    float xx = (float)x * GRID_STEP;
+                    float yy = (float)y * GRID_STEP;
+                    float zz = (float)z * GRID_STEP;
+
+                    vec3_t pv = vec3(xx - GRID_OFFSET, yy - GRID_OFFSET, zz - GRID_OFFSET);
+                    pv = mat3x3transform(rot, pv);
+                    float rad = field_box(pv.x, pv.y, pv.z);
+                    
+                    int cubec = (rand() + col_offset) % 4;
+                    float hh = cubec >= 2 ? 0.5 : 0.0;
+                    float vv = cubec % 2 == 0 ? 0.0 : 0.5;
+                    if(rad > 0.5) {
+                        vertCount += buildCube(&vboVerts[vertCount], vec3(xx * 1.0, yy * 1.0, zz * 1.0), rad * 0.03, hh, vv);
+                    }
+                }
+            }
+        }
+    }
+    
+    if(field_type == 2) {
+        for(int x = 0; x < GRID_X; x++) {
+            for(int y = 0; y < GRID_Y; y++) {
+                for(int z = 0; z < GRID_Z; z++) {
+                    float xx = (float)x * GRID_STEP;
+                    float yy = (float)y * GRID_STEP;
+                    float zz = (float)z * GRID_STEP;
+
+                    vec3_t pv = vec3(xx - GRID_OFFSET, yy - GRID_OFFSET, zz - GRID_OFFSET);
+                    pv = mat3x3transform(rot, pv);
+                    float rad = field_torus(pv.x, pv.y, pv.z);
+                    
+                    int cubec = (rand() + col_offset) % 4;
+                    float hh = cubec >= 2 ? 0.5 : 0.0;
+                    float vv = cubec % 2 == 0 ? 0.0 : 0.5;
+                    if(rad > 0.5) {
+                        vertCount += buildCube(&vboVerts[vertCount], vec3(xx * 1.0, yy * 1.0, zz * 1.0), rad * 0.03, hh, vv);
+                    }
                 }
             }
         }
@@ -180,9 +234,10 @@ void effectMetabobjsDraw(float iod, float row) {
     // Calculate the modelview matrix
     C3D_Mtx modelview;
     Mtx_Identity(&modelview);
-    Mtx_Translate(&modelview, -0.0, -0.0, -0.4, true);
-    Mtx_RotateY(&modelview, row * 0.01, true);
-    Mtx_RotateZ(&modelview, row * 0.02, true);
+    Mtx_Translate(&modelview, -0.0, -0.0, -0.6, true);
+    float rot_val = sync_get_val(sync_rot_ext, row);
+    Mtx_RotateY(&modelview, rot_val * 0.01, true);
+    Mtx_RotateZ(&modelview, rot_val * 0.02, true);
     Mtx_Translate(&modelview, -GRID_OFFSET, -GRID_OFFSET, -GRID_OFFSET, true);
     
     // Update the uniforms
@@ -303,6 +358,7 @@ void effectMetaobjectsExit() {
     // Free the texture
     C3D_TexDelete(&cubes_tex);
     C3D_TexDelete(&screen_tex);
+    C3D_TexDelete(&logo_tex);
 
     // Free the VBOs
     linearFree(vboVerts);

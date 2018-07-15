@@ -35,13 +35,15 @@ static C3D_FogLut fog_Lut;
 
 extern Font OL16Font; 
 
-#define SCROLLERTEXT "welcome to our small release for nordlicht 2018. Started way too late again, as usual, but here we are! The code and graphics this time are by halcy, and the music is by soto.                     release 3ds prods, you cowards!"
+#define SCROLLERTEXT "welcome to our small release for nordlicht 2018. Started way too late again, as usual, but here we are! The code and graphics this time are by halcy, and the music is by wrl.                     release 3ds prods, you cowards!"
 
 static Pixel* scrollPixels;
 static Bitmap scroller;
 static C3D_Tex scroll_tex;
 
 const struct sync_track* sync_scroll_pos;
+const struct sync_track* sync_rot;
+const struct sync_track* sync_z;
 
 static const C3D_Material lightMaterial = {
     { 0.1f, 0.1f, 0.1f }, //ambient
@@ -57,8 +59,10 @@ int32_t vertCount;
 
 // EXTREMELY simple scroller
 void effectTunnelInit() {
-    // Get rocket track
+    // Get rocket tracks
     sync_scroll_pos = sync_get_track(rocket, "tunnel.scroller");
+    sync_rot = sync_get_track(rocket, "tunnel.rot");
+    sync_z = sync_get_track(rocket, "tunnel.z");
     
     // Load default shader
     vshader_dvlb = DVLB_ParseFile((u32*)vshader_shbin, vshader_shbin_size);
@@ -104,7 +108,7 @@ void effectTunnelInit() {
     C3D_LightInit(&light, &lightEnv);
 }
 
-static void effectTunnelDraw(float iod, float time) {
+static void effectTunnelDraw(float iod, float row) {
     C3D_BindProgram(&program);
     
     // Get the location of the uniforms
@@ -136,11 +140,14 @@ static void effectTunnelDraw(float iod, float time) {
     C3D_FogLutBind(&fog_Lut);
     
     // Compute new modelview
-    float zoff = time * 0.01;
+    float tunnel_z = sync_get_val(sync_z, row);
+    float tunnel_rot = sync_get_val(sync_rot, row);
+    
+    float zoff = tunnel_z * 0.01;
     C3D_Mtx modelview;
     Mtx_Identity(&modelview);
     Mtx_Translate(&modelview, 0.0, 0.0, zoff - 5.0, true);
-    Mtx_RotateZ(&modelview, time * 0.00005, true);
+    Mtx_RotateZ(&modelview, tunnel_rot * 0.00005, true);
     
     // Send matrices
     C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLocProjection, &projection);
@@ -229,32 +236,6 @@ void effectTunnelRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRi
 //     float bg_time = sync_get_val(sync_bg_pos, row);
     float scroller_time = sync_get_val(sync_scroll_pos, row);
     
-//     float xshift = cos(bg_time * 0.0003) * 0.1;
-//     float yshift = sin(bg_time * 0.0001) * 0.1;
-//     
-    // Render some 2D stuff
-//     FillBitmap(&screen, RGBAf(0.1 * 0.5, 0.15 * 0.5, 0.15 * 0.5, 1.0));
-//     for(int x = 0; x < SCREEN_WIDTH; x += 10) {
-//         for(int y = 0; y < SCREEN_HEIGHT; y += 10) {
-//             float posX = ((float)(x - SCREEN_WIDTH / 2) / (float)SCREEN_WIDTH) + xshift * 0.1;
-//             float posY = ((float)(y - SCREEN_HEIGHT / 2) / (float)SCREEN_WIDTH) - yshift * 0.1;
-//             
-//             float lines = fmod(posX + posY * 0.3 + bg_time * 0.0001 + 10.0, 0.3) > 0.15 ? 0.15 : 0.05;
-//             float lines2 = fmod(posX + posY * 0.2 + bg_time * 0.0002 + 10.0, 0.3) > 0.15 ? 0.55 : 0.05;
-//             
-//             Pixel colorPrimary = RGBAf(lines2, lines2 * 0.9, lines2, 1.0);
-//             Pixel colorSecondary = RGBAf(lines, lines, lines, 1.0);
-//             
-//             DrawFilledRectangle(&screen, x, y, 10, 10, colorSecondary);
-//             DrawFilledCircle(&screen, x + 5, y + 5, 3, colorPrimary);
-//         }
-//     }
-    
-//     GSPGPU_FlushDataCache(screenPixels, SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(Pixel));
-//     GX_DisplayTransfer((u32*)screenPixels, GX_BUFFER_DIM(SCREEN_TEXTURE_WIDTH, SCREEN_TEXTURE_HEIGHT), (u32*)bg_tex.data, GX_BUFFER_DIM(SCREEN_TEXTURE_WIDTH, SCREEN_TEXTURE_HEIGHT), TEXTURE_TRANSFER_FLAGS);
-//     gspWaitForPPF();
-//     
-    
     // Scroller draw
     float sshift = -scroller_time * 0.1;
     FillBitmap(&scroller, RGBAf(1.0, 1.0, 1.0, 0.1));
@@ -275,7 +256,7 @@ void effectTunnelRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRi
     fullscreenQuad(bg_tex, -iod, 1.0 / 10.0);
     
     // Actual scene (empty in this, but you could!)
-    effectTunnelDraw(-iod, row * 100.0);
+    effectTunnelDraw(-iod, row);
     
     // Overlay
     fullscreenQuad(logo_tex, 0.0, 0.0);
@@ -295,7 +276,7 @@ void effectTunnelRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRi
         fullscreenQuad(bg_tex, iod, 1.0 / 10.0);
         
         // Actual scene
-        effectTunnelDraw(iod, row * 100.0);
+        effectTunnelDraw(iod, row);
         
         // Overlay
         fullscreenQuad(logo_tex, 0.0, 0.0);

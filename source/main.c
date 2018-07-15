@@ -33,7 +33,7 @@ double audio_get_row() {
     return (double)sample_pos / (double)SAMPLES_PER_ROW;
 }
 
-#define DEV_MODE
+// #define DEV_MODE
 
 #ifndef SYNC_PLAYER
 void audio_pause(void *ignored, int flag) {
@@ -96,7 +96,7 @@ int main() {
     bool DUMPFRAMES = false;
     
     // Set up effect sequence
-    effect effect_list[3];
+    effect effect_list[10];
     effect_list[0].init = effectLogoInit;
     effect_list[0].render = effectLogoRender;
     effect_list[0].exit = effectLogoExit;
