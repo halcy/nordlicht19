@@ -16,7 +16,7 @@ float fadeVal;
 
 #define AUDIO_BUFSIZE 1024
 
-#define SONG_BPM 110.0
+#define SONG_BPM 168.0
 #define SONG_BPS (SONG_BPM / 60.0)
 #define SONG_SPS 32000
 #define SONG_SPB (SONG_SPS / SONG_BPS)
@@ -32,6 +32,8 @@ uint8_t audio_playing = 1;
 double audio_get_row() {
     return (double)sample_pos / (double)SAMPLES_PER_ROW;
 }
+
+#define DEV_MODE
 
 #ifndef SYNC_PLAYER
 void audio_pause(void *ignored, int flag) {
@@ -55,7 +57,7 @@ struct sync_cb rocket_callbakcks = {
 };
 #endif
 
-#define ROCKET_HOST "172.20.10.7"
+#define ROCKET_HOST "10.1.1.43"
 #define SOC_ALIGN 0x1000
 #define SOC_BUFFERSIZE 0x100000
 
@@ -92,6 +94,24 @@ void audio_callback(void* ignored) {
 
 int main() {
     bool DUMPFRAMES = false;
+    
+    // Set up effect sequence
+    effect effect_list[3];
+    effect_list[0].init = effectLogoInit;
+    effect_list[0].render = effectLogoRender;
+    effect_list[0].exit = effectLogoExit;
+    
+    effect_list[1].init = effectTunnelInit;
+    effect_list[1].render = effectTunnelRender;
+    effect_list[1].exit = effectTunnelExit;
+    
+    effect_list[2].init = effectMetaobjectsInit;
+    effect_list[2].render = effectMetaobjectsRender;
+    effect_list[2].exit = effectMetaobjectsExit;
+    
+    effect_list[3].init = effectTunnel2Init;
+    effect_list[3].render = effectTunnel2Render;
+    effect_list[3].exit = effectTunnel2Exit;
     
     // Initialize graphics
     gfxInit(GSP_RGBA8_OES, GSP_BGR8_OES, false);
@@ -156,9 +176,11 @@ int main() {
     ndspChnWaveBufAdd(0, &wave_buffer[1]);
     
     // Start up first effect
-    effectTunnelInit();
+    int current_effect = 2;
+    effect_list[current_effect].init();
     
     const struct sync_track* sync_fade = sync_get_track(rocket, "global.fade");;
+    const struct sync_track* sync_effect = sync_get_track(rocket, "global.effect");;
     
     int fc = 0;
     while (aptMainLoop()) {
@@ -176,6 +198,15 @@ int main() {
             if(connect_rocket()) {
                 return(0);
             }
+        }
+#endif
+        int new_effect = (int)sync_get_val(sync_effect, row);
+#ifndef DEV_MODE
+        if(new_effect != -1 && new_effect != current_effect) {
+            effect_list[current_effect].exit();
+            
+            current_effect = new_effect;
+            effect_list[current_effect].init();
         }
 #endif
 
@@ -196,7 +227,7 @@ int main() {
         float slider = osGet3DSliderState();
         float iod = slider / 3.0;
         
-        effectTunnelRender(targetLeft, targetRight, iod, row);
+        effect_list[current_effect].render(targetLeft, targetRight, iod, row);
         
         gspWaitForP3D();
         gspWaitForPPF();

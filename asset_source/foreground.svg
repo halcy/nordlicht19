@@ -14,9 +14,9 @@
    height="512"
    id="svg2"
    version="1.1"
-   inkscape:version="0.48.3.1 r9886"
+   inkscape:version="0.91 r13725"
    sodipodi:docname="foreground.svg"
-   inkscape:export-filename="/home/halcyon/Desktop/3DS/evoke/logo.png"
+   inkscape:export-filename="C:\Users\halcy\Desktop\3DSDev\nordlicht18\asset_source\logo.png"
    inkscape:export-xdpi="90"
    inkscape:export-ydpi="90">
   <defs
@@ -54,9 +54,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.98994949"
-     inkscape:cx="48.197419"
-     inkscape:cy="362.41012"
+     inkscape:zoom="0.9899495"
+     inkscape:cx="158.73019"
+     inkscape:cy="313.74583"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -64,10 +64,10 @@
      fit-margin-left="0"
      fit-margin-right="0"
      fit-margin-bottom="0"
-     inkscape:window-width="1366"
-     inkscape:window-height="727"
-     inkscape:window-x="-4"
-     inkscape:window-y="20"
+     inkscape:window-width="1680"
+     inkscape:window-height="997"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
      inkscape:window-maximized="1" />
   <metadata
      id="metadata7">
@@ -114,18 +114,5 @@
        width="441.14142"
        id="rect4078"
        style="fill:#3d463b;fill-opacity:0.63921569000000000;stroke:none;stroke-width:0.99999994000000003;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:9" />
-    <text
-       xml:space="preserve"
-       style="font-size:14.28399944px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1.10000002;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;font-family:Bookman Uralic;-inkscape-font-specification:Sans Bold"
-       x="88.215134"
-       y="550.81934"
-       id="text4080"
-       sodipodi:linespacing="125%"
-       transform="scale(0.99738952,1.0026173)"><tspan
-         sodipodi:role="line"
-         id="tspan4082"
-         x="88.215134"
-         y="550.81934"
-         style="font-size:28.56799889px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1.10000002;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;font-family:UnPilgi;-inkscape-font-specification:UnPilgi Bold">&quot;Makes Good Demos Sometimes&quot;</tspan></text>
   </g>
 </svg>

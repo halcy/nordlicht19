@@ -5,7 +5,7 @@ use strict;
 
 my $scale = 0.4;
 my $offset = 0;
-my $suffix = "";
+my $suffix = "LogoNordlicht";
 
 my @vertices;
 my @faces;

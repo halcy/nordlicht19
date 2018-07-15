@@ -78,6 +78,19 @@ inline void setVert(vertex* vert, vec3_t p, vec2_t t) {
     vert->texcoord[1] = t.y;
 }
 
+inline void setVertNorm(vertex* vert, vec3_t p, vec2_t t, vec3_t n) {
+    vert->position[0] = p.x;
+    vert->position[1] = p.y;
+    vert->position[2] = p.z;
+    
+    vert->normal[0] = n.x;
+    vert->normal[1] = n.y;
+    vert->normal[2] = n.z;
+    
+    vert->texcoord[0] = t.x;
+    vert->texcoord[1] = t.y;
+}
+
 // a -- b
 // |    |
 // d -- c
@@ -88,6 +101,17 @@ inline int buildQuad(vertex* vert, vec3_t a, vec3_t b, vec3_t c, vec3_t d, vec2_
         setVert(vert, a, ta); vert++;
         setVert(vert, c, tc); vert++;
         setVert(vert, d, td); vert++;
+        
+        return 6;
+}
+
+inline int buildQuadNormal(vertex* vert, vec3_t a, vec3_t b, vec3_t c, vec3_t d, vec2_t ta, vec2_t tb, vec2_t tc, vec2_t td, vec3_t n) {
+        setVertNorm(vert, a, ta, n); vert++;
+        setVertNorm(vert, b, tb, n); vert++;
+        setVertNorm(vert, c, tc, n); vert++;        
+        setVertNorm(vert, a, ta, n); vert++;
+        setVertNorm(vert, c, tc, n); vert++;
+        setVertNorm(vert, d, td, n); vert++;
         
         return 6;
 }
@@ -105,6 +129,49 @@ inline int buildQuadProjectiveXY(vertex* vert, vec3_t a, vec3_t b, vec3_t c, vec
         setVert(vert, d, tc); vert++;
         
         return 6;
+}
+
+// a -- b     .
+// |\   |\    .
+// d -- c \   .
+//  \ e -\ f  .
+//   \|   \|  .
+//    h -- g  .
+inline int buildCube(vertex* vert, vec3_t cp, float r, float hh, float vv) {
+        // Texcoords
+        vec2_t t1 = vec2(hh + 0.0, vv + 0.0);
+        vec2_t t2 = vec2(hh + 0.0, vv + 0.5);
+        vec2_t t3 = vec2(hh + 0.5, vv + 0.5);
+        vec2_t t4 = vec2(hh + 0.5, vv + 0.0);
+        
+        // Corners
+        vec3_t a = vec3add(cp, vec3(-r, -r, -r));
+        vec3_t b = vec3add(cp, vec3( r, -r, -r));
+        vec3_t c = vec3add(cp, vec3( r, -r,  r));
+        vec3_t d = vec3add(cp, vec3(-r, -r,  r));
+        vec3_t e = vec3add(cp, vec3(-r,  r, -r));
+        vec3_t f = vec3add(cp, vec3( r,  r, -r));
+        vec3_t g = vec3add(cp, vec3( r,  r,  r));
+        vec3_t h = vec3add(cp, vec3(-r,  r,  r));
+        
+        // Normals
+        vec3_t n1 = vec3( 1,  0,  0);
+        vec3_t n2 = vec3(-1,  0,  0);
+        vec3_t n3 = vec3( 0,  1,  0);
+        vec3_t n4 = vec3( 0, -1,  0);
+        vec3_t n5 = vec3( 0,  0,  1);
+        vec3_t n6 = vec3( 0,  0, -1);
+        
+        // Faces
+        vert += buildQuadNormal(vert, a, b, c, d, t1, t2, t3, t4, n5);
+        vert += buildQuadNormal(vert, d, c, g, h, t1, t2, t3, t4, n4);
+        vert += buildQuadNormal(vert, h, g, f, e, t1, t2, t3, t4, n6);
+        vert += buildQuadNormal(vert, e, f, b, a, t1, t2, t3, t4, n3);
+        vert += buildQuadNormal(vert, b, f, g, c, t1, t2, t3, t4, n1);
+        vert += buildQuadNormal(vert, e, a, d, h, t1, t2, t3, t4, n2);
+        
+        // Done
+        return(6 * 6);
 }
 
 extern void fade();
