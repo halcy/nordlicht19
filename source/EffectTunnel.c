@@ -12,6 +12,7 @@
 #include "tunnel_glow_bin.h"
 #include "tunnel1_bg_bin.h"
 #include "Perlin.h"
+#include "Icosa.h"
 
 static DVLB_s* vshader_dvlb;
 static shaderProgram_s program;
@@ -35,7 +36,7 @@ static C3D_FogLut fog_Lut;
 
 extern Font OL16Font; 
 
-#define SCROLLERTEXT "welcome to our small release for nordlicht 2018. Started way too late again, as usual, but here we are! The code and graphics this time are by halcy, and the music is by wrl.                     release 3ds prods, you cowards!"
+#define SCROLLERTEXT "welcome to our small release for nordlicht 2018, titled \"Raumfahrtaufgabenubertragungsgesetz\". we started way too late again, as usual, but here we are! the code and graphics/3d this time are by halcy, and the music is by wrl. we hope you all have a wonderful nordlicht here in sunny bremen. love, halcy~                        release 3ds prods, you cowards!"
 
 static Pixel* scrollPixels;
 static Bitmap scroller;
@@ -47,7 +48,7 @@ const struct sync_track* sync_z;
 
 static const C3D_Material lightMaterial = {
     { 0.1f, 0.1f, 0.1f }, //ambient
-    { 0.2f, 0.8f, 0.4f }, //diffuse
+    { 1.0,  0.2,  0.5 }, //diffuse
     { 0.8f, 0.8f, 0.9f }, //specular0
     { 0.0f, 0.0f, 0.0f }, //specular1
     { 0.0f, 0.1f, 0.0f }, //emission
@@ -55,7 +56,7 @@ static const C3D_Material lightMaterial = {
 
 static vertex* tunnelVBO;
 int32_t vertCount;
-#define MAX_VERTS 30000
+#define MAX_VERTS 40000
 
 // EXTREMELY simple scroller
 void effectTunnelInit() {
@@ -157,12 +158,12 @@ static void effectTunnelDraw(float iod, float row) {
     
     // Stream some new verts
     int vertCount = 0;
-    float beam_step = 4.0;
+    float beam_step = 3.0;
     float beam_rad = 1.0;;
     float beam_len = 100.0;
     float beam_offset = 5.0;
     
-    for(int i = 25 + (int)zoff / beam_step; i >= (int)zoff / beam_step; i--) {
+    for(int i = 100 + (int)zoff / beam_step; i >= (int)zoff / beam_step; i--) {
         srand(i);
         for(int j = 0; j < 100; j++) {
             rand();
@@ -221,15 +222,75 @@ static void effectTunnelDraw(float iod, float row) {
             );
         }
     }
-
+    
+    for(int f = 0; f < numFacesIcosa; f++) {
+        for(int v = 0; v < 3; v++) {
+            // Set up vertex
+            uint32_t vertexIndex = facesIcosa[f].v[v];
+            tunnelVBO[20000 + f * 3 + v].position[0] = verticesIcosa[vertexIndex].x;
+            tunnelVBO[20000 + f * 3 + v].position[1] = verticesIcosa[vertexIndex].y;
+            tunnelVBO[20000 + f * 3 + v].position[2] = verticesIcosa[vertexIndex].z;
+            
+            // Set normal to face normal
+            tunnelVBO[20000 + f * 3 + v].normal[0] = normalsIcosa[facesIcosa[f].v[3]].x;
+            tunnelVBO[20000 + f * 3 + v].normal[1] = normalsIcosa[facesIcosa[f].v[3]].y;
+            tunnelVBO[20000 + f * 3 + v].normal[2] = normalsIcosa[facesIcosa[f].v[3]].z;
+            
+            tunnelVBO[20000 + f * 3 + v].texcoord[0] = 0.0;
+            tunnelVBO[20000 + f * 3 + v].texcoord[1] = 0.0;
+        }
+    }
+    
     // Additive blended draw
     C3D_LightEnvBind(0);
-    C3D_DepthTest(true, GPU_GEQUAL, GPU_WRITE_COLOR);
+    C3D_DepthTest(false, GPU_GEQUAL, GPU_WRITE_COLOR);
     C3D_AlphaBlend(GPU_BLEND_ADD, GPU_BLEND_ADD, GPU_SRC_ALPHA, GPU_ONE, GPU_SRC_ALPHA, GPU_ONE);
     C3D_DrawArrays(GPU_TRIANGLES, 0, vertCount);
     
-    C3D_AlphaBlend(GPU_BLEND_ADD, GPU_BLEND_ADD, GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA);
     C3D_CullFace(GPU_CULL_NONE);
+    
+    // Bind no texture
+    C3D_TexBind(0, &tunnel_glow_tex);
+    C3D_AlphaBlend(GPU_BLEND_ADD, GPU_BLEND_ADD, GPU_ONE, GPU_ONE, GPU_ONE, GPU_ONE);
+        
+    // Depth test back on
+    C3D_DepthTest(true, GPU_GEQUAL, GPU_WRITE_ALL);
+    
+    // Set up texenv
+    env = C3D_GetTexEnv(0);
+    C3D_TexEnvSrc(env, C3D_RGB, GPU_FRAGMENT_PRIMARY_COLOR, GPU_FRAGMENT_SECONDARY_COLOR, 0);
+    C3D_TexEnvOp(env, C3D_RGB, 0, 0, 0);
+    C3D_TexEnvFunc(env, C3D_RGB, GPU_ADD);
+    
+    // Lights on
+    C3D_LightEnvBind(&lightEnv);
+    C3D_FogGasMode(GPU_NO_FOG, GPU_PLAIN_DENSITY, false);
+    
+    float icotime = row;
+    float icoz = -2.0;
+    float icorad = 0.12;
+    for(int i = 0; i < 3; i++) {
+        float icotime_rot = icotime * 0.03 + ((float)i) * ((3.14152 * 2.0) / 7.0); 
+        float icotime_real = icotime + i * 1000000.0;
+        float xoff = (sin(icotime_rot) + 2.0 * sin(2.0 * icotime_rot)) * icorad;
+        float yoff = (cos(icotime_rot) - 2.0 * cos(2.0 * icotime_rot)) * icorad;
+        float zoff = (-sin(3.0 * icotime_rot)) * icorad;
+        
+        // New modelview
+        Mtx_Identity(&modelview);
+        Mtx_Translate(&modelview, xoff, yoff, zoff + icoz, true);
+        Mtx_RotateZ(&modelview, icotime_real * 0.02, true);
+        Mtx_RotateX(&modelview, icotime_real * 0.04, true);
+        Mtx_RotateY(&modelview, icotime_real * 0.08, true);
+        Mtx_Scale(&modelview, 0.4, 0.4, 0.4);
+        
+        C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLocModelview,  &modelview);
+            
+        // Draw icosa
+        C3D_DrawArrays(GPU_TRIANGLES, 20000, numFacesIcosa * 3);
+    }
+    
+    C3D_AlphaBlend(GPU_BLEND_ADD, GPU_BLEND_ADD, GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA);
 }
 
 void effectTunnelRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRight, float iod, float row) {

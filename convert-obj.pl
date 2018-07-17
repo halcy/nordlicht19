@@ -5,7 +5,7 @@ use strict;
 
 my $scale = 0.4;
 my $offset = 0;
-my $suffix = "Catte";
+my $suffix = "Icosa";
 
 my @vertices;
 my @faces;
@@ -138,11 +138,11 @@ foreach(@faces) {
 }
 print "};\n";
 
-print "const vec2_t texcoords" . $suffix . "[] = {\n";
-for(my $i = 0; $i < scalar @vertices; $i++) {
-    my $texcoord_idx = $vert_texcoords{$i + 1} - 1;
-    my @texcoord = @{$texcoords[$texcoord_idx]};
-    print "\t{ F(" . $texcoord[0] .
-        "), F(" . $texcoord[1] . ") }, \n";
-}
-print "};\n";
+# print "const vec2_t texcoords" . $suffix . "[] = {\n";
+# for(my $i = 0; $i < scalar @vertices; $i++) {
+#     my $texcoord_idx = $vert_texcoords{$i + 1} - 1;
+#     my @texcoord = @{$texcoords[$texcoord_idx]};
+#     print "\t{ F(" . $texcoord[0] .
+#         "), F(" . $texcoord[1] . ") }, \n";
+# }
+# print "};\n";

@@ -9,6 +9,7 @@
 #include "Tools.h"
 #include <vshader_shbin.h>
 #include "tunnel2_bin.h"
+#include "cube_rocketship_bin.h"
 #include "tunnel2_logo_bin.h"
 #include "gridbg_bin.h"
 #include "Perlin.h"
@@ -25,7 +26,8 @@ static C3D_Tex sphere_tex;
 static C3D_Tex logo_tex;
 static C3D_Tex bg_tex;
 
-int32_t vertCount;
+int32_t vert_count;
+int32_t vert_count_2;
 static vertex* vboVerts;
 
 #define SEGMENTS 15
@@ -44,7 +46,7 @@ void effectTunnel2Init() {
     vboVerts = (vertex*)linearAlloc(sizeof(vertex) * TUNNEL2_MAX_VERTS);
     
     // Load the texture and bind it to the first texture unit
-    C3D_TexUpload(&sphere_tex, tunnel2_bin);
+    C3D_TexUpload(&sphere_tex, cube_rocketship_bin);
     C3D_TexSetFilter(&sphere_tex, GPU_LINEAR, GPU_NEAREST);
     
     C3D_TexUpload(&logo_tex, tunnel2_logo_bin);
@@ -55,22 +57,27 @@ void effectTunnel2Init() {
 }
 
 void effectTunnel2Update(float time) {
-    int depth = 30;
+    int depth = 90;
     float zscale = 0.3;
     float rscale = 1.9;
-    float rscale_inner = 1.1;
-    float display_factor = 0.0;    
+    float rscale_inner = 1.7;
+    float rscale_innerest = 0.3;
+    float display_factor = 0.03;    
     
-    vertCount = 0;
+    vert_count = 0;
+    vert_count_2 = 10000;
+    
     vec3_t ringPos[SEGMENTS];
     vec3_t ringPosPrev[SEGMENTS];
     
     vec3_t ringPosInner[SEGMENTS];
     vec3_t ringPosPrevInner[SEGMENTS];
     
+    vec3_t ringPosInnerest[SEGMENTS];
+    vec3_t ringPosPrevInnerest[SEGMENTS];
+    
     float distance = -time * 0.03;
     float offset = fmod(distance, 1.0);
-    // printf("%f %f\n", distance, offset);
     
     for(int z = depth - 1; z >= 0; z--) {
         float zo = z + offset;
@@ -80,41 +87,54 @@ void effectTunnel2Update(float time) {
         for(int s = 0; s < SEGMENTS; s++) {
             float rn = 0.9;
             float sf = (((float)s) / (float)SEGMENTS) * 2.0 * 3.1415;
-            ringPos[s] = vec3((sin(sf) * rscale + xo) * rn, (cos(sf) * rscale + yo) * rn, -zo * zscale);
-            ringPosInner[s] = vec3(
-                (sin(sf + time * 0.01) * rscale_inner + xo) * rn, 
-                (cos(sf + time * 0.01) * rscale_inner + yo) * rn, 
+            float ho = zo * 0.2 - 1.0;
+            ringPos[s] = vec3(
+                (sin(sf + time * 0.01) * rscale + xo) * rn, 
+                (cos(sf + time * 0.01) * rscale + yo) * rn + ho, 
                 -zo * zscale
             );
-            
+            ringPosInner[s] = vec3(
+                (sin(sf + time * 0.03) * rscale_inner + xo) * rn, 
+                (cos(sf + time * 0.03) * rscale_inner + yo) * rn + ho, 
+                -zo * zscale
+            );
+            ringPosInnerest[s] = vec3(
+                (sin(sf) * rscale_innerest + xo) * rn, 
+                (cos(sf) * rscale_innerest + yo) * rn + ho, 
+                -zo * zscale
+            );
         }
         
         if(z != depth - 1) {
             for(int s = 0; s < SEGMENTS; s++) {
                 int sn = (s + 1) % SEGMENTS;
-                float tv = ((int)(time * 0.01) % 10) / 20.0;
-                float nv = noise_at(z - distance + offset + tv, s, 0.5);
-                float nv2 = noise_at(z - distance + offset + tv, s, 0.1);
+                float tv = -time;
+                float nv = noise_at(z - distance + offset, s, 0.5);
+                float nv2 = noise_at((z - distance + offset + tv) * 0.2, 0.1, 0.1);
                 float shift = 0.0;
-                if(nv2 > 0.15) {
+                if(nv2 > 0.0) {
                     shift = 0.5;
                 }
                 
                 if(nv > 0.15 - display_factor) {
-                    vertCount += buildQuad(&(vboVerts[vertCount]), ringPosPrev[s], ringPos[s], ringPos[sn], ringPosPrev[sn], 
-                                        vec2(0.5, 0.5 - shift), vec2(1, 0.5 - shift), vec2(0.5, 1 - shift), vec2(1, 1 - shift));
+                    vert_count += buildQuad(&(vboVerts[vert_count]), ringPosPrev[s], ringPos[s], ringPos[sn], ringPosPrev[sn], 
+                                        vec2(0.5, 0.5), vec2(1, 0.5), vec2(1, 1), vec2(0.5, 1));
                 }
                 
                 if(nv < -0.15 + display_factor) {
-                    vertCount += buildQuad(&(vboVerts[vertCount]), ringPosPrevInner[s], ringPosInner[s], ringPosInner[sn], ringPosPrevInner[sn], 
-                                        vec2(0.0, 0.0 + shift), vec2(0.5, 0.0 + shift), vec2(0.0, 0.5 + shift), vec2(0.5, 0.5 + shift));
+                    vert_count += buildQuad(&(vboVerts[vert_count]), ringPosPrevInner[s], ringPosInner[s], ringPosInner[sn], ringPosPrevInner[sn], 
+                                        vec2(0.0, 0.5), vec2(0.5, 0.5), vec2(0.5, 1.0), vec2(0.0, 1.0));
                 }
+                
+                vert_count_2 += buildQuad(&(vboVerts[vert_count_2]), ringPosPrevInnerest[s], ringPosInnerest[s], ringPosInnerest[sn], ringPosPrevInnerest[sn], 
+                                    vec2(0.0 + shift, 0.0), vec2(0.5 + shift, 0.0), vec2(0.5 + shift, 0.5), vec2(0.0 + shift, 0.5));
             }
         }
         
         for(int s = 0; s < SEGMENTS; s++) {
             ringPosPrev[s] = ringPos[s];
             ringPosPrevInner[s] = ringPosInner[s];
+            ringPosPrevInnerest[s] = ringPosInnerest[s];
         }
     }
 }
@@ -154,12 +174,11 @@ void effectTunnel2Draw(float iod) {
     C3D_TexEnvOp(env, C3D_Both, 0, 0, 0);
     C3D_TexEnvFunc(env, C3D_Both, GPU_REPLACE);
     
-    // To heck with culling
-    C3D_CullFace(GPU_CULL_NONE);
-
-    C3D_DepthTest(false, GPU_GEQUAL, GPU_WRITE_COLOR);
-    
     C3D_LightEnvBind(0);
+    
+    // No cull, but depth
+    C3D_CullFace(GPU_CULL_NONE); 
+    C3D_DepthTest(true, GPU_GEQUAL, GPU_WRITE_ALL);
     
     // Draw the VBO
     C3D_TexBind(0, &sphere_tex);    
@@ -168,13 +187,23 @@ void effectTunnel2Draw(float iod) {
     BufInfo_Init(bufInfo);
     BufInfo_Add(bufInfo, vboVerts, sizeof(vertex), 3, 0x210);
     
-    if(vertCount > 0) {
-        C3D_DrawArrays(GPU_TRIANGLES, 0, vertCount);
-    }
+    C3D_DrawArrays(GPU_TRIANGLES, 0, vert_count);
+
+    env = C3D_GetTexEnv(0);
+    C3D_TexEnvSrc(env, C3D_Both, GPU_TEXTURE0, 0, 0);
+    C3D_TexEnvOp(env, C3D_Both, 0, 0, 0);
+    C3D_TexEnvFunc(env, C3D_Both, GPU_REPLACE);
     
-    // Depth test is back
+    C3D_TexEnv* env2 = C3D_GetTexEnv(1);
+    C3D_TexEnvSrc(env2, C3D_Both, GPU_TEXTURE0, GPU_PREVIOUS, 0);
+    C3D_TexEnvOp(env2, C3D_Both, 0, 0, 0);
+    C3D_TexEnvFunc(env2, C3D_Both, GPU_ADD);
+    
+    C3D_DrawArrays(GPU_TRIANGLES, 10000, vert_count_2 - 10000);
+    
+    // Reset
+    C3D_CullFace(GPU_CULL_NONE);
     C3D_DepthTest(true, GPU_GEQUAL, GPU_WRITE_ALL);
-    
     C3D_LightEnvBind(0);
 }
 

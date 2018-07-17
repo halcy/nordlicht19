@@ -10,7 +10,8 @@
 #include <vshader_shbin.h>
 #include "logo_scroller_bin.h"
 #include "bg_scroller_bin.h"
-#include "cubes_bin.h"
+#include "cubes_scroll_2_bin.h"
+#include "cubes_scroll_bin.h"
 #include "catface_bin.h"
 #include "Catte.h"
 #include "Perlin.h"
@@ -24,6 +25,7 @@ static C3D_Mtx projection;
 static C3D_Tex screen_tex;
 static C3D_Tex logo_tex;
 static C3D_Tex cubes_tex;
+static C3D_Tex cubes2_tex;
 static C3D_Tex cat_tex;
 
 static C3D_LightEnv lightEnv;
@@ -41,7 +43,7 @@ float* valueGrid;
 
 extern Font OL16Font; 
 
-#define SCROLLERTEXT "nordlicht nordlicht nordlicht nordlicht nordlicht nordlicht nordlicht nordlicht nordlicht"
+#define SCROLLERTEXT "TiTAN   k2   Eos   Alcatraz   Nuance   nordlicht   nordlicht   nordlicht"
 
 static Pixel* scroll_pixels;
 static Bitmap scroller;
@@ -84,11 +86,13 @@ void effectScrollerInit() {
     
     // Cube texture
     C3D_TexInit(&cubes_tex, 64, 64, GPU_RGBA8);
-    C3D_TexUpload(&cubes_tex, cubes_bin);
+    C3D_TexUpload(&cubes_tex, cubes_scroll_bin);
     C3D_TexSetFilter(&cubes_tex, GPU_LINEAR, GPU_NEAREST);
-    C3D_TexSetFilterMipmap(&cubes_tex, GPU_LINEAR);
-    C3D_TexSetWrap(&cat_tex, GPU_REPEAT, GPU_REPEAT);
-      
+    
+    C3D_TexInit(&cubes2_tex, 64, 64, GPU_RGBA8);
+    C3D_TexUpload(&cubes2_tex, cubes_scroll_2_bin);
+    C3D_TexSetFilter(&cubes2_tex, GPU_LINEAR, GPU_NEAREST);
+    
     // :3
     C3D_TexInit(&cat_tex, 64, 64, GPU_RGBA8);
     C3D_TexUpload(&cat_tex, catface_bin);
@@ -197,6 +201,11 @@ static void effectScrollerDraw(float iod, float time) {
     C3D_TexEnvOp(env2, C3D_RGB, 0, 0, 0);
     C3D_TexEnvFunc(env2, C3D_RGB, GPU_MODULATE);
     
+    C3D_TexEnv* env3 = C3D_GetTexEnv(2);
+    C3D_TexEnvSrc(env3, C3D_RGB, GPU_TEXTURE0, GPU_PREVIOUS, 0);
+    C3D_TexEnvOp(env3, C3D_RGB, 0, 0, 0);
+    C3D_TexEnvFunc(env3, C3D_RGB, GPU_ADD);
+    
     // Set up lighting equation
     static const C3D_Material lightMaterial = {
         { 0.2f, 0.2f, 0.2f }, //ambient
@@ -222,6 +231,7 @@ static void effectScrollerDraw(float iod, float time) {
     
     // Bind a texture
     C3D_TexBind(0, &cubes_tex);
+    C3D_TexBind(1, &cubes2_tex);
     
     // Depth test on
     C3D_DepthTest(true, GPU_GREATER, GPU_WRITE_ALL);
@@ -282,7 +292,6 @@ void effectScrollerRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* target
     FillBitmap(&scroller, RGBAf(0.0, 0.0, 0.0, 0.0));
     DrawSimpleString(&scroller, &OL16Font, sshift, 6, RGBAf(0.3, 0.6 + 3 * 0.1, 1.0 - 3 * 0.3, 1.0), SCROLLERTEXT);
 
-    
     C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
     
     // Left eye
@@ -315,8 +324,7 @@ void effectScrollerRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* target
         fade();
     }
     
-    C3D_FrameEnd(GX_CMDLIST_FLUSH);
-    printf("%f %f\n", C3D_GetDrawingTime(), C3D_GetProcessingTime());
+    C3D_FrameEnd(0);
 }
 
 void effectScrollerExit() {
@@ -327,6 +335,7 @@ void effectScrollerExit() {
     C3D_TexDelete(&screen_tex);
     C3D_TexDelete(&logo_tex);
     C3D_TexDelete(&cubes_tex);
+    C3D_TexDelete(&cubes2_tex);
     
     // Free pixel data
     linearFree(scroll_pixels);

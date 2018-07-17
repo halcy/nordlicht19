@@ -1,5 +1,6 @@
 # Blender v2.79 (sub 0) OBJ File: 'icosahedron.blend'
 # www.blender.org
+mtllib icosahedron.mtl
 o Icosphere
 v -0.247049 -0.938665 -0.240572
 v 0.743001 -0.669186 -0.010936
@@ -93,6 +94,7 @@ vn -0.3358 0.6662 0.6659
 vn 0.6561 0.6665 -0.3539
 vn -0.4259 0.8949 -0.1337
 vn 0.7911 0.4284 0.4365
+usemtl Icomaterial
 s off
 f 2//1 1//1 14//1
 f 1//2 3//2 15//2

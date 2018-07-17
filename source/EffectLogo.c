@@ -8,7 +8,7 @@
 
 #include "Tools.h"
 #include <vshader_shbin.h>
-#include "logo_bin.h"
+#include "logo_fg_bin.h"
 #include "tunnel_glow_bin.h"
 #include "Perlin.h"
 
@@ -81,7 +81,7 @@ void effectLogoInit() {
     
     // FG texture
     C3D_TexInit(&logo_tex, SCREEN_TEXTURE_HEIGHT, SCREEN_TEXTURE_WIDTH, GPU_RGBA8);
-    C3D_TexUpload(&logo_tex, logo_bin);
+    C3D_TexUpload(&logo_tex, logo_fg_bin);
     C3D_TexSetFilter(&logo_tex, GPU_LINEAR, GPU_NEAREST);
     
     // Tunnel texture
@@ -325,7 +325,7 @@ void effectLogoRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRigh
     effectLogoDraw(-iod, row);
     
     // Overlay
-//     fullscreenQuad(logo_tex, 0.0, 0.0);
+    fullscreenQuad(logo_tex, 0.0, 0.0);
   
     fade();
     
@@ -341,7 +341,7 @@ void effectLogoRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRigh
         effectLogoDraw(iod, row);
     
         // Overlay
-//         fullscreenQuad(logo_tex, 0.0, 0.0);
+        fullscreenQuad(logo_tex, 0.0, 0.0);
         
         fade();
     }

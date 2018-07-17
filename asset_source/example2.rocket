@@ -185,7 +185,7 @@
 		<track name="tunnel.scroller">
 			<key row="760" interpolation="1" value="-5000"/>
 			<key row="1016" interpolation="1" value="10000"/>
-			<key row="1272" interpolation="0" value="24000"/>
+			<key row="1272" interpolation="0" value="36000"/>
 		</track>
 		<track name="tunnel.rot">
 			<key row="760" interpolation="1" value="0"/>

@@ -9,6 +9,7 @@
 #include "Tools.h"
 #include "vshader_shbin.h"
 #include "cubes_bin.h"
+#include "meta_fg_bin.h"
 #include "Perlin.h"
 
 #define METABALLS_MAX_VERTS 140000
@@ -87,6 +88,7 @@ void effectMetaobjectsInit() {
     vboVerts = (vertex*)linearAlloc(sizeof(vertex) * METABALLS_MAX_VERTS);
     
     C3D_TexInit(&logo_tex, SCREEN_TEXTURE_HEIGHT, SCREEN_TEXTURE_WIDTH, GPU_RGBA8);
+    C3D_TexUpload(&logo_tex, meta_fg_bin);
     C3D_TexSetFilter(&logo_tex, GPU_LINEAR, GPU_NEAREST);
 }
 
