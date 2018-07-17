@@ -24,6 +24,11 @@
     <pattern
        inkscape:collect="always"
        xlink:href="#pattern5591"
+       id="pattern4869"
+       patternTransform="matrix(9.1884647,0,0,37.150911,1082.1204,-1080.9974)" />
+    <pattern
+       inkscape:collect="always"
+       xlink:href="#pattern5591"
        id="pattern5595"
        patternTransform="matrix(9.1884647,0,0,37.150911,724.32645,-1240.4201)" />
     <pattern
@@ -96,9 +101,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.4"
-     inkscape:cx="201.07983"
-     inkscape:cy="319.90797"
+     inkscape:zoom="0.98994949"
+     inkscape:cx="16.379486"
+     inkscape:cy="274.60222"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -106,10 +111,10 @@
      fit-margin-left="0"
      fit-margin-right="0"
      fit-margin-bottom="0"
-     inkscape:window-width="1680"
-     inkscape:window-height="997"
-     inkscape:window-x="-8"
-     inkscape:window-y="-8"
+     inkscape:window-width="1920"
+     inkscape:window-height="1021"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
      inkscape:window-maximized="1" />
   <metadata
      id="metadata7">
@@ -176,5 +181,13 @@
        inkscape:transform-center-x="8.157"
        inkscape:transform-center-y="-3.1630755"
        transform="matrix(0.31752754,0,0,0.30331111,183.88104,381.89996)" />
+    <rect
+       style="opacity:1;fill:url(#pattern4869);fill-opacity:1;stroke:none;stroke-width:30;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect4867"
+       width="270.40338"
+       height="873.04645"
+       x="1297.1305"
+       y="717.39087"
+       transform="matrix(1,0,-0.86932968,0.49423264,0,0)" />
   </g>
 </svg>
