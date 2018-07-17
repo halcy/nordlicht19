@@ -75,7 +75,7 @@ void effectMetaobjectsInit() {
     shaderProgramInit(&program);
     shaderProgramSetVsh(&program, &vshader_dvlb->DVLE[0]);
 
-    C3D_TexInit(&cubes_tex, 512, 512, GPU_RGBA8);
+    C3D_TexInit(&cubes_tex, 64, 64, GPU_RGBA8);
     C3D_TexUpload(&cubes_tex, cubes_bin);
     C3D_TexSetFilter(&cubes_tex, GPU_LINEAR, GPU_NEAREST);
     C3D_TexSetFilterMipmap(&cubes_tex, GPU_LINEAR);
@@ -222,7 +222,7 @@ void effectMetabobjsDraw(float iod, float row) {
     AttrInfo_AddLoader(attrInfo, 2, GPU_FLOAT, 3); // v2=normal
 
     // Compute the projection matrix
-    Mtx_PerspStereoTilt(&projection, 95.0f*M_PI/180.0f, 400.0f/240.0f, 0.01f, 1000.0f, iod, 2.0f, false);
+    Mtx_PerspStereoTilt(&projection, 65.0f*M_PI/180.0f, 400.0f/240.0f, 0.01f, 1000.0f, iod, 2.0f, false);
     
     // Configure buffers
     C3D_BufInfo* bufInfo = C3D_GetBufInfo();
@@ -234,7 +234,7 @@ void effectMetabobjsDraw(float iod, float row) {
     // Calculate the modelview matrix
     C3D_Mtx modelview;
     Mtx_Identity(&modelview);
-    Mtx_Translate(&modelview, -0.0, -0.0, -0.6, true);
+    Mtx_Translate(&modelview, -0.0, -0.0, -0.9, true);
     float rot_val = sync_get_val(sync_rot_ext, row);
     Mtx_RotateY(&modelview, rot_val * 0.01, true);
     Mtx_RotateZ(&modelview, rot_val * 0.02, true);
@@ -253,11 +253,6 @@ void effectMetabobjsDraw(float iod, float row) {
     C3D_TexEnvSrc(env2, C3D_RGB, GPU_TEXTURE0, GPU_PREVIOUS, 0);
     C3D_TexEnvOp(env2, C3D_RGB, 0, 0, 0);
     C3D_TexEnvFunc(env2, C3D_RGB, GPU_MODULATE);
-    
-//     C3D_TexEnv* env3 = C3D_GetTexEnv(2);
-//     C3D_TexEnvSrc(env3, C3D_RGB, GPU_FRAGMENT_SECONDARY_COLOR, GPU_PREVIOUS, 0);
-//     C3D_TexEnvOp(env3, C3D_RGB, GPU_TEVOP_RGB_SRC_ALPHA , 0, 0);
-//     C3D_TexEnvFunc(env3, C3D_RGB, GPU_ADD);
     
     static const C3D_Material lightMaterial =
     {

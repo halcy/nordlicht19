@@ -113,6 +113,10 @@ int main() {
     effect_list[3].render = effectTunnel2Render;
     effect_list[3].exit = effectTunnel2Exit;
     
+    effect_list[4].init = effectScrollerInit;
+    effect_list[4].render = effectScrollerRender;
+    effect_list[4].exit = effectScrollerExit;
+    
     // Initialize graphics
     gfxInit(GSP_RGBA8_OES, GSP_BGR8_OES, false);
     gfxSet3D(true);
@@ -176,7 +180,11 @@ int main() {
     ndspChnWaveBufAdd(0, &wave_buffer[1]);
     
     // Start up first effect
-    int current_effect = 2;
+    int current_effect = 4;
+#ifndef DEV_MODE
+    current_effect = 0;
+#endif
+    
     effect_list[current_effect].init();
     
     const struct sync_track* sync_fade = sync_get_track(rocket, "global.fade");;

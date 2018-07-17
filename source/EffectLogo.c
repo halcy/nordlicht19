@@ -85,9 +85,9 @@ void effectLogoInit() {
     C3D_TexSetFilter(&logo_tex, GPU_LINEAR, GPU_NEAREST);
     
     // Tunnel texture
-    C3D_TexInit(&projTex, 256, 256, GPU_RGBA8);
-    projPixels = (Pixel*)linearAlloc(256 * 256 * sizeof(Pixel));
-    InitialiseBitmap(&projBitmap, 256, 256, BytesPerRowForWidth(256), projPixels);
+    C3D_TexInit(&projTex, 128, 128, GPU_RGBA8);
+    projPixels = (Pixel*)linearAlloc(128 * 128 * sizeof(Pixel));
+    InitialiseBitmap(&projBitmap, 128, 128, BytesPerRowForWidth(128), projPixels);
     
     // Create the VBO
     logoVBO = (vertex*)linearAlloc(sizeof(vertex) * MAX_VERTS);
@@ -279,15 +279,15 @@ void effectLogoRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRigh
     // Update projective "cutting" texture
     FillBitmap(&projBitmap, RGBA(163, 73, 164, 255));
     if(sync_get_val(sync_stripe_active, row) > 0.0) {
-        int32_t offset = (int32_t)(sync_get_val(sync_stripe_pos, row)) % 30;
+        int32_t offset = (int32_t)(sync_get_val(sync_stripe_pos, row)) % 14;
         int32_t stripe_alpha = sync_get_val(sync_stripe_alpha, row);
-        for(int y = 0; y < 256; y += 30) {
-            DrawFilledRectangle(&projBitmap, 0, y + offset, 256, 15, RGBA(0, 0, 0, stripe_alpha));
+        for(int y = 0; y < 128; y += 14) {
+            DrawFilledRectangle(&projBitmap, 0, y + offset, 128, 7, RGBA(0, 0, 0, stripe_alpha));
         }
     }
     
-    GSPGPU_FlushDataCache(projPixels, 256 * 256 * sizeof(Pixel));
-    GX_DisplayTransfer((u32*)projPixels, GX_BUFFER_DIM(256, 256), (u32*)projTex.data, GX_BUFFER_DIM(256, 256), TEXTURE_TRANSFER_FLAGS);
+    GSPGPU_FlushDataCache(projPixels, 128 * 128 * sizeof(Pixel));
+    GX_DisplayTransfer((u32*)projPixels, GX_BUFFER_DIM(128, 128), (u32*)projTex.data, GX_BUFFER_DIM(128, 128), TEXTURE_TRANSFER_FLAGS);
     gspWaitForPPF();
     
     // Render some 2D stuff

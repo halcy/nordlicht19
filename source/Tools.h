@@ -174,6 +174,43 @@ inline int buildCube(vertex* vert, vec3_t cp, float r, float hh, float vv) {
         return(6 * 6);
 }
 
+inline int buildCuboid(vertex* vert, vec3_t cp, vec3_t r, float hh, float vv) {
+        // Texcoords
+        vec2_t t1 = vec2(hh + 0.0, vv + 0.0);
+        vec2_t t2 = vec2(hh + 0.0, vv + 0.5);
+        vec2_t t3 = vec2(hh + 0.5, vv + 0.5);
+        vec2_t t4 = vec2(hh + 0.5, vv + 0.0);
+        
+        // Corners
+        vec3_t a = vec3add(cp, vec3(-r.x, -r.y, -r.z));
+        vec3_t b = vec3add(cp, vec3( r.x, -r.y, -r.z));
+        vec3_t c = vec3add(cp, vec3( r.x, -r.y,  r.z));
+        vec3_t d = vec3add(cp, vec3(-r.x, -r.y,  r.z));
+        vec3_t e = vec3add(cp, vec3(-r.x,  r.y, -r.z));
+        vec3_t f = vec3add(cp, vec3( r.x,  r.y, -r.z));
+        vec3_t g = vec3add(cp, vec3( r.x,  r.y,  r.z));
+        vec3_t h = vec3add(cp, vec3(-r.x,  r.y,  r.z));
+        
+        // Normals
+        vec3_t n1 = vec3( 1,  0,  0);
+        vec3_t n2 = vec3(-1,  0,  0);
+        vec3_t n3 = vec3( 0,  1,  0);
+        vec3_t n4 = vec3( 0, -1,  0);
+        vec3_t n5 = vec3( 0,  0,  1);
+        vec3_t n6 = vec3( 0,  0, -1);
+        
+        // Faces
+        vert += buildQuadNormal(vert, a, b, c, d, t1, t2, t3, t4, n5);
+        vert += buildQuadNormal(vert, d, c, g, h, t1, t2, t3, t4, n4);
+//         vert += buildQuadNormal(vert, h, g, f, e, t1, t2, t3, t4, n6);
+//         vert += buildQuadNormal(vert, e, f, b, a, t1, t2, t3, t4, n3);
+        vert += buildQuadNormal(vert, b, f, g, c, t1, t2, t3, t4, n1);
+        vert += buildQuadNormal(vert, e, a, d, h, t1, t2, t3, t4, n2);
+        
+        // Done
+        return(6 * 6);
+}
+
 extern void fade();
 
 #endif

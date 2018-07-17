@@ -8,40 +8,40 @@
 
 #include "Tools.h"
 #include <vshader_shbin.h>
-#include "logo_bin.h"
+#include "logo_scroller_bin.h"
+#include "bg_scroller_bin.h"
+#include "cubes_bin.h"
 #include "Perlin.h"
 
 static DVLB_s* vshader_dvlb;
 static shaderProgram_s program;
 
-static int uLoc_projection, uLoc_modelView;
+static int uLoc_projection, uLoc_modelview;
 static C3D_Mtx projection;
 
-static Pixel* screenPixels;
-static Bitmap screen;
 static C3D_Tex screen_tex;
 static C3D_Tex logo_tex;
+static C3D_Tex cubes_tex;
 
 static C3D_LightEnv lightEnv;
 static C3D_Light light;
 static C3D_LightLut lut_Phong;
-static C3D_LightLut lut_shittyFresnel;
 
-int32_t vertCount;
-int32_t vertCountMetaballs;
-static vertex* vboVerts;
+int32_t vert_count;
+static vertex* vbo_verts;
 float* valueGrid;
+
+#define MAX_VERTS 200000
 
 #include "Font.h"
 #include "MonoFont.h"
 
 extern Font OL16Font; 
 
-#define SCROLLERTEXT "EVERY MORNING I WAKE UP AND OPEN PALM SLAM A VHS INTO THE SLOT. ITS CHRONICLES OF RIDDICK AND RIGHT THEN AND THERE I START DOING THE MOVES ALONGSIDE WITH THE MAIN CHARACTER, RIDDICK. I DO EVERY MOVE AND I DO EVERY MOVE HARD. MAKIN WHOOSHING SOUNDS WHEN I SLAM DOWN SOME NECRO BASTARDS OR EVEN WHEN I MESS UP TECHNIQUE. NOT MANY CAN SAY THEY ESCAPED THE GALAXY’S MOST DANGEROUS PRISON. I CAN. I SAY IT AND I SAY IT OUTLOUD EVERYDAY TO PEOPLE IN MY COLLEGE CLASS AND ALL THEY DO IS PROVE PEOPLE IN COLLEGE CLASS CAN STILL BE IMMATURE JERKS. AND IVE LEARNED ALL THE LINES AND IVE LEARNED HOW TO MAKE MYSELF AND MY APARTMENT LESS LONELY BY SHOUTING EM ALL. 2 HOURS INCLUDING WIND DOWN EVERY MORNING."
+#define SCROLLERTEXT "nordlicht nordlicht nordlicht nordlicht nordlicht nordlicht nordlicht nordlicht nordlicht"
 
-static Pixel* scrollPixels;
+static Pixel* scroll_pixels;
 static Bitmap scroller;
-static C3D_Tex scroll_tex;
 
 const struct sync_track* sync_scroll_pos;
 const struct sync_track* sync_bg_pos;
@@ -66,19 +66,65 @@ void effectScrollerInit() {
     shaderProgramSetVsh(&program, &vshader_dvlb->DVLE[0]);
     
     // Scroller texture
-    C3D_TexInit(&scroll_tex, 512, 512, GPU_RGBA8);
-    scrollPixels = (Pixel*)linearAlloc(512 * 512 * sizeof(Pixel));
-    InitialiseBitmap(&scroller, 512, 512, BytesPerRowForWidth(512), scrollPixels);
+    scroll_pixels = (Pixel*)linearAlloc(512 * 512 * sizeof(Pixel));
+    InitialiseBitmap(&scroller, 512, 512, BytesPerRowForWidth(512), scroll_pixels);
     
     // BG texture
     C3D_TexInit(&screen_tex, SCREEN_TEXTURE_WIDTH, SCREEN_TEXTURE_HEIGHT, GPU_RGBA8);    
-    screenPixels = (Pixel*)linearAlloc(SCREEN_TEXTURE_WIDTH * SCREEN_TEXTURE_HEIGHT * sizeof(Pixel));
-    InitialiseBitmap(&screen, SCREEN_TEXTURE_WIDTH, SCREEN_TEXTURE_HEIGHT, BytesPerRowForWidth(SCREEN_TEXTURE_WIDTH), screenPixels);
+    C3D_TexUpload(&screen_tex, bg_scroller_bin);
+    C3D_TexSetFilter(&screen_tex, GPU_NEAREST, GPU_NEAREST);
     
     // FG texture
-    C3D_TexInit(&logo_tex, SCREEN_TEXTURE_HEIGHT, SCREEN_TEXTURE_WIDTH, GPU_RGBA8);
-    C3D_TexUpload(&logo_tex, logo_bin);
-    C3D_TexSetFilter(&logo_tex, GPU_LINEAR, GPU_NEAREST);
+    C3D_TexInit(&logo_tex, SCREEN_TEXTURE_WIDTH, SCREEN_TEXTURE_HEIGHT, GPU_RGBA8);
+    C3D_TexUpload(&logo_tex, logo_scroller_bin);
+    C3D_TexSetFilter(&logo_tex, GPU_NEAREST, GPU_NEAREST);
+    
+    // Cube texture
+    C3D_TexInit(&cubes_tex, 64, 64, GPU_RGBA8);
+    C3D_TexUpload(&cubes_tex, cubes_bin);
+    C3D_TexSetFilter(&cubes_tex, GPU_LINEAR, GPU_NEAREST);
+    C3D_TexSetFilterMipmap(&cubes_tex, GPU_LINEAR);
+    
+    // Vertex Storage
+    vbo_verts = (vertex*)linearAlloc(sizeof(vertex) * MAX_VERTS);
+    C3D_BufInfo* bufInfo = C3D_GetBufInfo();
+    BufInfo_Init(bufInfo);
+    BufInfo_Add(bufInfo, vbo_verts, sizeof(vertex), 3, 0x210);
+}
+
+
+static void effectScrollerUpdate(float row) {
+    // Set up vertices (externalize me if problem)
+    vert_count = 0;
+    for(int x = 0; x < 100; x++) {
+        float offset = (x  - 50.0) * 0.037;
+        offset = powf(offset, 7.0) * 0.1;
+        
+        for(int y = 0; y < 20; y++) {
+            int pixel_val = (scroll_pixels[(20 - y) * 512 + x] >> 8) & 255;
+            float noise_val = noise_at(x * 0.2, y * 0.2, row * 0.01);
+            float noise_val_2 = noise_at(x * 0.4, y * 0.4, row * 0.02);
+            float height = noise_val * 0.3 + pixel_val * 0.03 - 0.5;;
+            float hh = 0.5;
+            float vv = 0.0;
+            if(height > 0.02) {
+                hh = 0.0;
+                vv = 0.5;
+            } else {
+                if(noise_val_2 > 0.0) {
+                    hh = 0.0;                
+                    vv = 0.0;
+                }
+                if(noise_val_2 > 0.2) {
+                    hh = 0.5;
+                    vv = 0.5;
+                }
+            }
+            height += offset;
+            
+            vert_count += buildCuboid(vbo_verts + vert_count, vec3(x * 0.3, y * 0.3, height), vec3(0.3 / 2.0, 0.3 / 2.0, 0.5), hh, vv);
+        }
+    }
 }
 
 static void effectScrollerDraw(float iod, float time) {
@@ -86,7 +132,7 @@ static void effectScrollerDraw(float iod, float time) {
 
     // Get the location of the uniforms
     uLoc_projection = shaderInstanceGetUniformLocation(program.vertexShader, "projection");
-    uLoc_modelView = shaderInstanceGetUniformLocation(program.vertexShader, "modelView");
+    uLoc_modelview = shaderInstanceGetUniformLocation(program.vertexShader, "modelView");
 
     // Configure attributes for use with the vertex shader
     C3D_AttrInfo* attrInfo = C3D_GetAttrInfo();
@@ -98,46 +144,79 @@ static void effectScrollerDraw(float iod, float time) {
     // Compute the projection matrix
     Mtx_PerspStereoTilt(&projection, 65.0f*M_PI/180.0f, 400.0f/240.0f, 0.2f, 30.0f, iod, 2.0f, false);
     
-    // Probably 3D here
+    // Calculate the modelview matrix
+    C3D_Mtx modelview;
+    Mtx_Identity(&modelview);
+    Mtx_Translate(&modelview, -8.5, -5.5, -2.3, true);
+    Mtx_RotateY(&modelview, 0.3, true);
+    Mtx_RotateZ(&modelview, 0.4, true);
+    Mtx_RotateX(&modelview, -1.0, true);
+    
+    // Update the uniforms
+    C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLoc_projection, &projection);
+    C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLoc_modelview,  &modelview);
+    
+    // Set up texops
+    C3D_TexEnv* env = C3D_GetTexEnv(0);
+    C3D_TexEnvSrc(env, C3D_RGB, GPU_FRAGMENT_PRIMARY_COLOR, GPU_FRAGMENT_SECONDARY_COLOR, 0);
+    C3D_TexEnvOp(env, C3D_RGB, 0, 0, 0);
+    C3D_TexEnvFunc(env, C3D_RGB, GPU_ADD);
+
+    C3D_TexEnv* env2 = C3D_GetTexEnv(1);
+    C3D_TexEnvSrc(env2, C3D_RGB, GPU_TEXTURE0, GPU_PREVIOUS, 0);
+    C3D_TexEnvOp(env2, C3D_RGB, 0, 0, 0);
+    C3D_TexEnvFunc(env2, C3D_RGB, GPU_MODULATE);
+    
+    // Set up lighting equation
+    static const C3D_Material lightMaterial = {
+        { 0.2f, 0.2f, 0.2f }, //ambient
+        { 0.4f, 0.4f, 0.4f }, //diffuse
+        { 0.8f, 0.8f, 0.8f }, //specular0
+        { 0.0f, 0.0f, 0.0f }, //specular1
+        { 0.0f, 0.0f, 0.0f }, //emission
+    };
+
+    C3D_LightEnvInit(&lightEnv);
+    C3D_LightEnvBind(&lightEnv);
+    C3D_LightEnvMaterial(&lightEnv, &lightMaterial);
+
+    LightLut_Phong(&lut_Phong, 3.0);
+    C3D_LightEnvLut(&lightEnv, GPU_LUT_D0, GPU_LUTINPUT_LN, false, &lut_Phong);
+    
+    C3D_FVec lightVec = { { 2.0, 2.0, -10.0, 0.0 } };
+
+    C3D_LightInit(&light, &lightEnv);
+    C3D_LightColor(&light, 1.0, 1.0, 1.0);
+    C3D_LightPosition(&light, &lightVec);
+    C3D_LightTwoSideDiffuse(&light, false);
+    
+    // Bind no texture
+    C3D_TexBind(0, &cubes_tex);
+    
+    // Depth test on
+    C3D_DepthTest(true, GPU_GREATER, GPU_WRITE_ALL);
+        
+    // Culling too
+    C3D_CullFace(GPU_CULL_BACK_CCW);
+    
+    // Draw the VBO
+    C3D_DrawArrays(GPU_TRIANGLES, 0, vert_count);
+    
+    // Turn lighting off again
+    C3D_LightEnvBind(0);
 }
 
 void effectScrollerRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRight, float iod, float row) {
+    effectScrollerUpdate(row);
+    
     float bg_time = sync_get_val(sync_bg_pos, row);
     float scroller_time = sync_get_val(sync_scroll_pos, row);
     
-    float xshift = cos(bg_time * 0.0003) * 0.1;
-    float yshift = sin(bg_time * 0.0001) * 0.1;
-    
-    // Render some 2D stuff
-    FillBitmap(&screen, RGBAf(0.1 * 0.5, 0.15 * 0.5, 0.15 * 0.5, 1.0));
-    for(int x = 0; x < SCREEN_WIDTH; x += 10) {
-        for(int y = 0; y < SCREEN_HEIGHT; y += 10) {
-            float posX = ((float)(x - SCREEN_WIDTH / 2) / (float)SCREEN_WIDTH) + xshift * 0.1;
-            float posY = ((float)(y - SCREEN_HEIGHT / 2) / (float)SCREEN_WIDTH) - yshift * 0.1;
-            
-            float lines = fmod(posX + posY * 0.3 + bg_time * 0.0001 + 10.0, 0.3) > 0.15 ? 0.15 : 0.05;
-            float lines2 = fmod(posX + posY * 0.2 + bg_time * 0.0002 + 10.0, 0.3) > 0.15 ? 0.55 : 0.05;
-            
-            Pixel colorPrimary = RGBAf(lines2, lines2 * 0.9, lines2, 1.0);
-            Pixel colorSecondary = RGBAf(lines, lines, lines, 1.0);
-            
-            DrawFilledRectangle(&screen, x, y, 10, 10, colorSecondary);
-            DrawFilledCircle(&screen, x + 5, y + 5, 3, colorPrimary);
-        }
-    }
-    
-    GSPGPU_FlushDataCache(screenPixels, SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(Pixel));
-    GX_DisplayTransfer((u32*)screenPixels, GX_BUFFER_DIM(SCREEN_TEXTURE_WIDTH, SCREEN_TEXTURE_HEIGHT), (u32*)screen_tex.data, GX_BUFFER_DIM(SCREEN_TEXTURE_WIDTH, SCREEN_TEXTURE_HEIGHT), TEXTURE_TRANSFER_FLAGS);
-    gspWaitForPPF();
-    
     // Scroller draw
-    float sshift = -scroller_time * 0.4;
-    FillBitmap(&scroller, RGBAf(1.0, 1.0, 1.0, 0.1));
-    DrawSimpleString(&scroller, &OL16Font, sshift, 7 * 16, RGBAf(0.3, 0.6 + 3 * 0.1, 1.0 - 3 * 0.3, 1.0), SCROLLERTEXT);
-    
-    GSPGPU_FlushDataCache(scrollPixels, 512 * 256 * sizeof(Pixel));
-    GX_DisplayTransfer((u32*)scrollPixels, GX_BUFFER_DIM(512, 256), (u32*)scroll_tex.data, GX_BUFFER_DIM(512, 256), TEXTURE_TRANSFER_FLAGS);
-    gspWaitForPPF();
+    float sshift = -scroller_time * 0.04;
+    FillBitmap(&scroller, RGBAf(0.0, 0.0, 0.0, 0.0));
+    DrawSimpleString(&scroller, &OL16Font, sshift, 6, RGBAf(0.3, 0.6 + 3 * 0.1, 1.0 - 3 * 0.3, 1.0), SCROLLERTEXT);
+
     
     C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
     
@@ -149,9 +228,6 @@ void effectScrollerRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* target
     
     // Actual scene (empty in this, but you could!)
     effectScrollerDraw(-iod, scroller_time);
-    
-    // Scroller as an overlay
-    fullscreenQuad(scroll_tex, -iod, 1.0 / 15.0);
     
     // Overlay
     fullscreenQuad(logo_tex, 0.0, 0.0);
@@ -167,9 +243,6 @@ void effectScrollerRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* target
         
         // Actual scene
         effectScrollerDraw(iod, scroller_time);
-    
-        // Scroller as an overlay
-        fullscreenQuad(scroll_tex, iod, 1.0 / 15.0);
         
         // Overlay
         fullscreenQuad(logo_tex, 0.0, 0.0);
@@ -177,18 +250,21 @@ void effectScrollerRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* target
         fade();
     }
     
-    C3D_FrameEnd(0);
+    C3D_FrameEnd(GX_CMDLIST_FLUSH);
+    printf("%f %f\n", C3D_GetDrawingTime(), C3D_GetProcessingTime());
 }
 
 void effectScrollerExit() {
+    // Free vertices
+    linearFree(vbo_verts);
+    
     // Free the texture
-    C3D_TexDelete(&scroll_tex);
     C3D_TexDelete(&screen_tex);
     C3D_TexDelete(&logo_tex);
+    C3D_TexDelete(&cubes_tex);
     
     // Free pixel data
-    linearFree(scrollPixels);
-    linearFree(screenPixels);
+    linearFree(scroll_pixels);
     
     // Free the shader program
     shaderProgramFree(&program);

@@ -37,7 +37,7 @@ void effectTunnel2Init() {
     shaderProgramInit(&program);
     shaderProgramSetVsh(&program, &vshader_dvlb->DVLE[0]);
 
-    C3D_TexInit(&sphere_tex, 256, 256, GPU_RGBA8);
+    C3D_TexInit(&sphere_tex, 64, 64, GPU_RGBA8);
     C3D_TexInit(&bg_tex, SCREEN_TEXTURE_HEIGHT, SCREEN_TEXTURE_WIDTH, GPU_RGBA8);
     C3D_TexInit(&logo_tex, SCREEN_TEXTURE_HEIGHT, SCREEN_TEXTURE_WIDTH, GPU_RGBA8);
     

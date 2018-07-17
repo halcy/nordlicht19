@@ -85,7 +85,7 @@ void effectTunnelInit() {
     C3D_TexSetFilter(&logo_tex, GPU_LINEAR, GPU_NEAREST);
     
     // Tunnel texture
-    C3D_TexInit(&tunnel_glow_tex, SCREEN_TEXTURE_HEIGHT, SCREEN_TEXTURE_WIDTH, GPU_RGBA8);
+    C3D_TexInit(&tunnel_glow_tex, 64, 64, GPU_RGBA8);
     C3D_TexUpload(&tunnel_glow_tex, tunnel_glow_bin);
     C3D_TexSetFilter(&tunnel_glow_tex, GPU_LINEAR, GPU_NEAREST);
     C3D_TexSetFilterMipmap(&tunnel_glow_tex, GPU_LINEAR);

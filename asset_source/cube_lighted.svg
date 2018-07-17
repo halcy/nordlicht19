@@ -17,8 +17,8 @@
    inkscape:version="0.91 r13725"
    sodipodi:docname="cube_lighted.svg"
    inkscape:export-filename="C:\Users\halcy\Desktop\3DSDev\nordlicht18\asset_source\cubes.png"
-   inkscape:export-xdpi="90"
-   inkscape:export-ydpi="90">
+   inkscape:export-xdpi="11.25"
+   inkscape:export-ydpi="11.25">
   <defs
      id="defs4">
     <linearGradient
@@ -167,7 +167,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.98994949"
-     inkscape:cx="204.42088"
+     inkscape:cx="-28.924359"
      inkscape:cy="302.35927"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
@@ -189,7 +189,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
