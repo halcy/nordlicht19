@@ -11,6 +11,8 @@
 #include "logo_scroller_bin.h"
 #include "bg_scroller_bin.h"
 #include "cubes_bin.h"
+#include "catface_bin.h"
+#include "Catte.h"
 #include "Perlin.h"
 
 static DVLB_s* vshader_dvlb;
@@ -22,6 +24,7 @@ static C3D_Mtx projection;
 static C3D_Tex screen_tex;
 static C3D_Tex logo_tex;
 static C3D_Tex cubes_tex;
+static C3D_Tex cat_tex;
 
 static C3D_LightEnv lightEnv;
 static C3D_Light light;
@@ -84,18 +87,45 @@ void effectScrollerInit() {
     C3D_TexUpload(&cubes_tex, cubes_bin);
     C3D_TexSetFilter(&cubes_tex, GPU_LINEAR, GPU_NEAREST);
     C3D_TexSetFilterMipmap(&cubes_tex, GPU_LINEAR);
+    C3D_TexSetWrap(&cat_tex, GPU_REPEAT, GPU_REPEAT);
+      
+    // :3
+    C3D_TexInit(&cat_tex, 64, 64, GPU_RGBA8);
+    C3D_TexUpload(&cat_tex, catface_bin);
+    C3D_TexSetFilter(&cat_tex, GPU_NEAREST, GPU_NEAREST);
+    C3D_TexSetWrap(&cat_tex, GPU_CLAMP_TO_EDGE, GPU_CLAMP_TO_EDGE);
     
     // Vertex Storage
     vbo_verts = (vertex*)linearAlloc(sizeof(vertex) * MAX_VERTS);
     C3D_BufInfo* bufInfo = C3D_GetBufInfo();
     BufInfo_Init(bufInfo);
     BufInfo_Add(bufInfo, vbo_verts, sizeof(vertex), 3, 0x210);
+    
+    // Cat
+    for(int f = 0; f < numFacesCatte; f++) {
+        for(int v = 0; v < 3; v++) {
+            // Set up vertex
+            uint32_t vertexIndex = facesCatte[f].v[v];
+            vbo_verts[f * 3 + v].position[0] = verticesCatte[vertexIndex].x;
+            vbo_verts[f * 3 + v].position[1] = verticesCatte[vertexIndex].y;
+            vbo_verts[f * 3 + v].position[2] = verticesCatte[vertexIndex].z;
+            
+            // Set normal to face normal
+            vbo_verts[f * 3 + v].normal[0] = normalsCatte[facesCatte[f].v[3]].x;
+            vbo_verts[f * 3 + v].normal[1] = normalsCatte[facesCatte[f].v[3]].y;
+            vbo_verts[f * 3 + v].normal[2] = normalsCatte[facesCatte[f].v[3]].z;
+            
+            // Set texcoords
+            vbo_verts[f * 3 + v].texcoord[0] = texcoordsCatte[vertexIndex].x;
+            vbo_verts[f * 3 + v].texcoord[1] = texcoordsCatte[vertexIndex].y;
+        }
+    }
 }
 
 
 static void effectScrollerUpdate(float row) {
     // Set up vertices (externalize me if problem)
-    vert_count = 0;
+    vert_count = numFacesCatte * 3;
     for(int x = 0; x < 100; x++) {
         float offset = (x  - 50.0) * 0.037;
         offset = powf(offset, 7.0) * 0.1;
@@ -147,7 +177,7 @@ static void effectScrollerDraw(float iod, float time) {
     // Calculate the modelview matrix
     C3D_Mtx modelview;
     Mtx_Identity(&modelview);
-    Mtx_Translate(&modelview, -8.5, -5.5, -2.3, true);
+    Mtx_Translate(&modelview, -9.0, -8.5, -2.3, true);
     Mtx_RotateY(&modelview, 0.3, true);
     Mtx_RotateZ(&modelview, 0.4, true);
     Mtx_RotateX(&modelview, -1.0, true);
@@ -190,7 +220,7 @@ static void effectScrollerDraw(float iod, float time) {
     C3D_LightPosition(&light, &lightVec);
     C3D_LightTwoSideDiffuse(&light, false);
     
-    // Bind no texture
+    // Bind a texture
     C3D_TexBind(0, &cubes_tex);
     
     // Depth test on
@@ -200,7 +230,42 @@ static void effectScrollerDraw(float iod, float time) {
     C3D_CullFace(GPU_CULL_BACK_CCW);
     
     // Draw the VBO
-    C3D_DrawArrays(GPU_TRIANGLES, 0, vert_count);
+    C3D_DrawArrays(GPU_TRIANGLES, numFacesCatte * 3, vert_count);
+    
+    // Texenv glowy
+    env = C3D_GetTexEnv(0);
+    C3D_TexEnvSrc(env, C3D_RGB, GPU_FRAGMENT_PRIMARY_COLOR, GPU_FRAGMENT_SECONDARY_COLOR, 0);
+    C3D_TexEnvOp(env, C3D_RGB, 0, 0, 0);
+    C3D_TexEnvFunc(env, C3D_RGB, GPU_ADD);
+
+    env2 = C3D_GetTexEnv(1);
+    C3D_TexEnvSrc(env2, C3D_RGB, GPU_TEXTURE0, GPU_PREVIOUS, 0);
+    C3D_TexEnvOp(env2, C3D_RGB, 0, 0, 0);
+    C3D_TexEnvFunc(env2, C3D_RGB, GPU_ADD);
+    
+    // Bind a texture
+    C3D_TexBind(0, &cat_tex);
+    
+    // Calculate the modelview matrix (catte)
+    srand(43);
+    for(int i = 0; i < 6; i++) {
+        float xoff = (rand() % 40) - 15.0;
+        float zoff = ((rand() % 10) - 5.0) / 10.0;
+        float toff = ((rand() % 300));
+        Mtx_Identity(&modelview);
+        Mtx_Translate(&modelview, xoff, 0, -15.0, true);
+        Mtx_RotateX(&modelview, 0.3, true);    
+        Mtx_RotateZ(&modelview, 0.4, true);
+        Mtx_RotateY(&modelview, time * 0.01, true);
+        Mtx_Translate(&modelview, 0.0, fmod(toff + time * 0.01, 30) - 15.0, 0.0, true);
+        Mtx_Scale(&modelview, 2.0, 2.0, 2.0);
+        
+        // Update the uniforms
+        C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLoc_modelview,  &modelview);
+        
+        // Draw the VBO
+        C3D_DrawArrays(GPU_TRIANGLES, 0, numFacesCatte * 3);
+    }
     
     // Turn lighting off again
     C3D_LightEnvBind(0);

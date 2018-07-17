@@ -33,7 +33,7 @@ double audio_get_row() {
     return (double)sample_pos / (double)SAMPLES_PER_ROW;
 }
 
-// #define DEV_MODE
+#define DEV_MODE
 
 #ifndef SYNC_PLAYER
 void audio_pause(void *ignored, int flag) {
@@ -57,7 +57,7 @@ struct sync_cb rocket_callbakcks = {
 };
 #endif
 
-#define ROCKET_HOST "10.1.1.43"
+#define ROCKET_HOST "127.0.0.1"
 #define SOC_ALIGN 0x1000
 #define SOC_BUFFERSIZE 0x100000
 

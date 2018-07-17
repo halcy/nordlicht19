@@ -5,7 +5,7 @@ use strict;
 
 my $scale = 0.4;
 my $offset = 0;
-my $suffix = "LogoNordlicht";
+my $suffix = "Catte";
 
 my @vertices;
 my @faces;
@@ -13,6 +13,8 @@ my @faces;
 my $material = 0;
 my $lastmaterial = 0;
 my %materials = ();
+my %vert_texcoords = ();
+my @texcoords = ();
 
 while(<>) {
         if( $_ =~ /usemtl ([^ ]+)/ ) {
@@ -30,9 +32,20 @@ while(<>) {
         push @vertices, [$1, $2, $3];
     }
 
+    if( $_ =~ /vt ([^ ]+) ([^ ]+)/ ) {
+        push @texcoords, [$1, $2];
+    }
+    
     # Assume normals are per face, no whatever calculate normals later
-    if( $_ =~ /f ([0-9]+)\/[0-9]*\/([0-9]+) ([0-9]+)\/[0-9]*\/([0-9]+) ([0-9]+)\/[0-9]*\/([0-9]+)/ ) {
-        push @faces, [$1, $3, $5, $2];
+    if( $_ =~ /f ([0-9]+)\/([0-9]*)\/([0-9]+) ([0-9]+)\/([0-9]*)\/([0-9]+) ([0-9]+)\/[0-9]*\/([0-9]+)/ ) {
+        push @faces, [$1, $4, $7, $3];
+        
+        # Likely reasonable assumption: Texcoords are unique per vertex
+        if( length($2) != 0 ) {
+            $vert_texcoords{$1} = $2;
+            $vert_texcoords{$4} = $5;
+            $vert_texcoords{$7} = $8;
+        }
     }
 
     if( $_ =~ /f ([0-9]+) ([0-9]+) ([0-9]+)/ ) {
@@ -122,5 +135,14 @@ foreach(@faces) {
                 ($face[1] - 1 + $offset) . ", " .
                 ($face[2] - 1 + $offset) . ", " .
                 ($face[3] - 1 + $offset) . "},\n";
+}
+print "};\n";
+
+print "const vec2_t texcoords" . $suffix . "[] = {\n";
+for(my $i = 0; $i < scalar @vertices; $i++) {
+    my $texcoord_idx = $vert_texcoords{$i + 1} - 1;
+    my @texcoord = @{$texcoords[$texcoord_idx]};
+    print "\t{ F(" . $texcoord[0] .
+        "), F(" . $texcoord[1] . ") }, \n";
 }
 print "};\n";
