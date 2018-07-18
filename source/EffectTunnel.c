@@ -45,6 +45,8 @@ static C3D_Tex scroll_tex;
 const struct sync_track* sync_scroll_pos;
 const struct sync_track* sync_rot;
 const struct sync_track* sync_z;
+const struct sync_track* sync_icosa_z;
+const struct sync_track* sync_icosa_rot;
 
 static const C3D_Material lightMaterial = {
     { 0.1f, 0.1f, 0.1f }, //ambient
@@ -64,6 +66,8 @@ void effectTunnelInit() {
     sync_scroll_pos = sync_get_track(rocket, "tunnel.scroller");
     sync_rot = sync_get_track(rocket, "tunnel.rot");
     sync_z = sync_get_track(rocket, "tunnel.z");
+    sync_icosa_rot = sync_get_track(rocket, "tunnel.icorot");
+    sync_icosa_z = sync_get_track(rocket, "tunnel.icoz");
     
     // Load default shader
     vshader_dvlb = DVLB_ParseFile((u32*)vshader_shbin, vshader_shbin_size);
@@ -266,8 +270,8 @@ static void effectTunnelDraw(float iod, float row) {
     C3D_LightEnvBind(&lightEnv);
     C3D_FogGasMode(GPU_NO_FOG, GPU_PLAIN_DENSITY, false);
     
-    float icotime = row;
-    float icoz = -2.0;
+    float icotime = sync_get_val(sync_icosa_rot, row);
+    float icoz = sync_get_val(sync_icosa_z, row);
     float icorad = 0.12;
     for(int i = 0; i < 3; i++) {
         float icotime_rot = icotime * 0.03 + ((float)i) * ((3.14152 * 2.0) / 7.0); 

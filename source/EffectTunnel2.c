@@ -32,6 +32,11 @@ static vertex* vboVerts;
 
 #define SEGMENTS 15
 
+
+const struct sync_track* sync_disp_fact;
+const struct sync_track* sync_pos;
+const struct sync_track* sync_rot;
+
 // Ohne tunnel geht eben nicht
 void effectTunnel2Init() {
     // Load default shader
@@ -54,15 +59,19 @@ void effectTunnel2Init() {
     
     C3D_TexUpload(&bg_tex, gridbg_bin);
     C3D_TexSetFilter(&bg_tex, GPU_LINEAR, GPU_NEAREST);
+    
+    sync_pos = sync_get_track(rocket, "tunnel2.pos");
+    sync_rot = sync_get_track(rocket, "tunnel2.rot");
+    sync_disp_fact = sync_get_track(rocket, "tunnel2.dfact");
 }
 
-void effectTunnel2Update(float time) {
+void effectTunnel2Update(float row) {
     int depth = 90;
     float zscale = 0.3;
     float rscale = 1.9;
     float rscale_inner = 1.7;
     float rscale_innerest = 0.3;
-    float display_factor = 0.03;    
+    float display_factor = sync_get_val(sync_disp_fact, row); // 0.03
     
     vert_count = 0;
     vert_count_2 = 10000;
@@ -76,26 +85,26 @@ void effectTunnel2Update(float time) {
     vec3_t ringPosInnerest[SEGMENTS];
     vec3_t ringPosPrevInnerest[SEGMENTS];
     
-    float distance = -time * 0.03;
+    float distance = -sync_get_val(sync_pos, row) * 0.03;
     float offset = fmod(distance, 1.0);
-    
+    float rot_off = sync_get_val(sync_rot, row);
     for(int z = depth - 1; z >= 0; z--) {
         float zo = z + offset;
-        float xo = sin(zo * 0.2) * (zo / 10.0) * cos(time * 0.01);
-        float yo = cos(zo * 0.2) * (zo / 10.0) * sin(time * 0.01);
+        float xo = sin(zo * 0.2) * (zo / 10.0) * cos(rot_off * 0.01);
+        float yo = cos(zo * 0.2) * (zo / 10.0) * sin(rot_off * 0.01);
         
         for(int s = 0; s < SEGMENTS; s++) {
             float rn = 0.9;
             float sf = (((float)s) / (float)SEGMENTS) * 2.0 * 3.1415;
             float ho = zo * 0.2 - 1.0;
             ringPos[s] = vec3(
-                (sin(sf + time * 0.01) * rscale + xo) * rn, 
-                (cos(sf + time * 0.01) * rscale + yo) * rn + ho, 
+                (sin(sf + rot_off * 0.01) * rscale + xo) * rn, 
+                (cos(sf + rot_off * 0.01) * rscale + yo) * rn + ho, 
                 -zo * zscale
             );
             ringPosInner[s] = vec3(
-                (sin(sf + time * 0.03) * rscale_inner + xo) * rn, 
-                (cos(sf + time * 0.03) * rscale_inner + yo) * rn + ho, 
+                (sin(sf + rot_off * 0.03) * rscale_inner + xo) * rn, 
+                (cos(sf + rot_off * 0.03) * rscale_inner + yo) * rn + ho, 
                 -zo * zscale
             );
             ringPosInnerest[s] = vec3(
@@ -108,7 +117,7 @@ void effectTunnel2Update(float time) {
         if(z != depth - 1) {
             for(int s = 0; s < SEGMENTS; s++) {
                 int sn = (s + 1) % SEGMENTS;
-                float tv = -time;
+                float tv = -row;
                 float nv = noise_at(z - distance + offset, s, 0.5);
                 float nv2 = noise_at((z - distance + offset + tv) * 0.2, 0.1, 0.1);
                 float shift = 0.0;

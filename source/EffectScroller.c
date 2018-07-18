@@ -161,7 +161,9 @@ static void effectScrollerUpdate(float row) {
     }
 }
 
-static void effectScrollerDraw(float iod, float time) {
+static void effectScrollerDraw(float iod, float row) {
+    float bg_time = sync_get_val(sync_bg_pos, row);
+    
     C3D_BindProgram(&program);
 
     // Get the location of the uniforms
@@ -262,12 +264,19 @@ static void effectScrollerDraw(float iod, float time) {
         float xoff = (rand() % 40) - 15.0;
         float zoff = ((rand() % 10) - 5.0) / 10.0;
         float toff = ((rand() % 300));
+        float yoff = 0.0;
+        if(bg_time * 0.01 < 30.0) {
+            yoff = fmod(toff, 30) - 45.0 + bg_time * 0.01;
+        }
+        else {
+            yoff = fmod(toff + bg_time * 0.01, 30) - 15.0;
+        }
         Mtx_Identity(&modelview);
         Mtx_Translate(&modelview, xoff, 0, -15.0, true);
         Mtx_RotateX(&modelview, 0.3, true);    
         Mtx_RotateZ(&modelview, 0.4, true);
-        Mtx_RotateY(&modelview, time * 0.01, true);
-        Mtx_Translate(&modelview, 0.0, fmod(toff + time * 0.01, 30) - 15.0, 0.0, true);
+        Mtx_RotateY(&modelview, bg_time * 0.003, true);
+        Mtx_Translate(&modelview, 0.0, yoff, 0.0, true);
         Mtx_Scale(&modelview, 2.0, 2.0, 2.0);
         
         // Update the uniforms
@@ -284,10 +293,8 @@ static void effectScrollerDraw(float iod, float time) {
 void effectScrollerRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRight, float iod, float row) {
     effectScrollerUpdate(row);
     
-    float bg_time = sync_get_val(sync_bg_pos, row);
-    float scroller_time = sync_get_val(sync_scroll_pos, row);
-    
     // Scroller draw
+    float scroller_time = sync_get_val(sync_scroll_pos, row);
     float sshift = -scroller_time * 0.04;
     FillBitmap(&scroller, RGBAf(0.0, 0.0, 0.0, 0.0));
     DrawSimpleString(&scroller, &OL16Font, sshift, 6, RGBAf(0.3, 0.6 + 3 * 0.1, 1.0 - 3 * 0.3, 1.0), SCROLLERTEXT);
@@ -301,7 +308,7 @@ void effectScrollerRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* target
     fullscreenQuad(screen_tex, -iod, 1.0 / 10.0);
     
     // Actual scene (empty in this, but you could!)
-    effectScrollerDraw(-iod, scroller_time);
+    effectScrollerDraw(-iod, row);
     
     // Overlay
     fullscreenQuad(logo_tex, 0.0, 0.0);
@@ -316,7 +323,7 @@ void effectScrollerRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* target
         fullscreenQuad(screen_tex, iod, 1.0 / 10.0);
         
         // Actual scene
-        effectScrollerDraw(iod, scroller_time);
+        effectScrollerDraw(iod, row);
         
         // Overlay
         fullscreenQuad(logo_tex, 0.0, 0.0);
