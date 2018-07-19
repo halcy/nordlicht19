@@ -257,6 +257,8 @@ void effectTunnel2Render(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetR
 void effectTunnel2Exit() {
     // Free the texture
     C3D_TexDelete(&sphere_tex);
+    C3D_TexDelete(&bg_tex);
+    C3D_TexDelete(&logo_tex);
     
     // Free the VBOs
     linearFree(vboVerts);

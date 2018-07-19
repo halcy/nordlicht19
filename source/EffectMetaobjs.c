@@ -378,10 +378,10 @@ void effectMetaobjectsExit() {
     C3D_TexDelete(&cubes_tex);
     C3D_TexDelete(&screen_tex);
     C3D_TexDelete(&logo_tex);
-    C3D_TexDelete(&temp_tex);
 
-    // Remove rendertarget
-    C3D_RenderTargetDelete(target_temp);
+    // Remove rendertarget (Crashes - whoops? maybe fine to delete only tex)
+//     C3D_RenderTargetDelete(target_temp);
+    C3D_TexDelete(&temp_tex);
     
     // Free the VBOs
     linearFree(vboVerts);

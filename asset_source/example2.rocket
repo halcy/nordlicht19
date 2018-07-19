@@ -36,6 +36,7 @@
 			<key row="1280" value="4" interpolation="0"/>
 			<key row="1528" value="2" interpolation="0"/>
 			<key row="1792" value="3" interpolation="0"/>
+			<key row="1828" value="5" interpolation="0"/>
 		</track>
 		<track name="logo.bgpos">
 			<key row="0" value="1000" interpolation="0"/>
@@ -277,6 +278,24 @@
 			<key row="1827" value="0.03" interpolation="0"/>
 			<key row="1828" value="1" interpolation="0"/>
 			<key row="1832" value="0.03" interpolation="0"/>
+		</track>
+		<track name="meta.glitch"/>
+		<track name="meta.glitch_t"/>
+		<track name="cat.rot">
+			<key row="1828" value="0" interpolation="1"/>
+			<key row="1860" value="500" interpolation="0"/>
+		</track>
+		<track name="cat.glitch">
+			<key row="1828" value="0" interpolation="0"/>
+			<key row="1841" value="0" interpolation="1"/>
+			<key row="1843" value="0.3" interpolation="0"/>
+			<key row="1851" value="0.3" interpolation="1"/>
+			<key row="1853" value="0" interpolation="0"/>
+		</track>
+		<track name="cat.glitch_t">
+			<key row="1828" value="0" interpolation="0"/>
+			<key row="1841" value="0" interpolation="2"/>
+			<key row="1852" value="5" interpolation="0"/>
 		</track>
 	</tracks>
 	<bookmarks/>
