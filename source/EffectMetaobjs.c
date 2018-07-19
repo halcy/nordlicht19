@@ -41,6 +41,8 @@ const struct sync_track* sync_obj_sel;
 const struct sync_track* sync_rot_int;
 const struct sync_track* sync_rot_ext;
 const struct sync_track* sync_col;
+const struct sync_track* sync_glitch;
+const struct sync_track* sync_glitch_t;
 
 #define GRID_X 11
 #define GRID_Y 11
@@ -73,6 +75,8 @@ void effectMetaobjectsInit() {
     sync_rot_int = sync_get_track(rocket, "meta.rot_int");
     sync_rot_ext = sync_get_track(rocket, "meta.rot_ext");
     sync_col = sync_get_track(rocket, "meta.col");
+    sync_glitch = sync_get_track(rocket, "meta.glitch");
+    sync_glitch_t = sync_get_track(rocket, "meta.glitch_t");
     
     // Load default shader
     vshader_dvlb = DVLB_ParseFile((u32*)vshader_shbin, vshader_shbin_size);
@@ -304,8 +308,10 @@ void effectMetabobjsDraw(float iod, float row) {
 }
 
 void effectMetaobjectsRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRight, float iod, float row) { 
+    float glitch = sync_get_val(sync_glitch, row);
+    float glitch_t = sync_get_val(sync_glitch_t, row);
+    
     // Render some 2D stuff
-    // Blocky noise rotozoom
     FillBitmap(&screen, RGBAf(0.0, 0.0, 0.0, 1.0));        
     for(int x = 0; x < SCREEN_WIDTH; x += 10) {
         for(int y = 0; y < SCREEN_HEIGHT; y += 10) {
@@ -339,7 +345,7 @@ void effectMetaobjectsRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* tar
     
     // Render to actual eye
     C3D_FrameDrawOn(targetLeft);
-    fullscreenQuadGlitch(temp_tex, 20, row * 0.1, 0.3);
+    fullscreenQuadGlitch(temp_tex, 20, glitch_t, glitch);
     
     fade();
     
@@ -359,7 +365,7 @@ void effectMetaobjectsRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* tar
         
         // Render to actual eye
         C3D_FrameDrawOn(targetRight);
-        fullscreenQuadGlitch(temp_tex, 20, row * 0.1, 0.3);
+        fullscreenQuadGlitch(temp_tex, 20, glitch_t, glitch);
         
         fade();
     }

@@ -120,6 +120,10 @@ int main() {
     effect_list[4].render = effectScrollerRender;
     effect_list[4].exit = effectScrollerExit;
     
+    effect_list[5].init = effectCatteInit;
+    effect_list[5].render = effectCatteRender;
+    effect_list[5].exit = effectCatteExit;
+    
     // Initialize graphics
     gfxInit(GSP_RGBA8_OES, GSP_BGR8_OES, false);
     gfxSet3D(true);
@@ -183,7 +187,7 @@ int main() {
     ndspChnWaveBufAdd(0, &wave_buffer[1]);
     
     // Start up first effect
-    int current_effect = 2;
+    int current_effect = 5;
 #ifndef DEV_MODE
     current_effect = 0;
 #endif

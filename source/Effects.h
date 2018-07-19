@@ -23,6 +23,10 @@ extern void effectMetaobjectsInit();
 extern void effectMetaobjectsRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRight, float iod, float time);
 extern void effectMetaobjectsExit();
 
+extern void effectCatteInit();
+extern void effectCatteRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRight, float iod, float time);
+extern void effectCatteExit();
+
 typedef void (*init_fun_t)();
 typedef void (*render_fun_t)(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRight, float iod, float time);
 typedef void (*exit_fun_t)();

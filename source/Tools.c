@@ -185,8 +185,8 @@ void fullscreenQuadGlitch(C3D_Tex texture, int parts, float time, float amount) 
     for(int i = 0; i < parts; i++) {
         float quadTop = ((float)i / (float)parts) * SCREEN_HEIGHT;
         float quadBottom = ((float)(i+1) / (float)parts) * SCREEN_HEIGHT;
-        float textureLeft = ((float)(i+1) / (float)parts);
-        float textureRight = ((float)(i) / (float)parts);
+        float textureLeft =1.0 -  ((float)(i+1) / (float)parts);
+        float textureRight = 1.0 - ((float)(i) / (float)parts);
         
         
         float distAmt = pow(sin(noise_at(i * 0.05 - time, 0.1, 0.1)) * amount, 3.0);

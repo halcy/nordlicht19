@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="512"
+   height="512"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.91 r13725"
+   sodipodi:docname="foreground_catte.svg"
+   inkscape:export-filename="/home/ldiener/misc_src/citro/nordlicht18/asset_source/cat_fg.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90">
+  <defs
+     id="defs4">
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient5580">
+      <stop
+         style="stop-color:#6cfff6;stop-opacity:1"
+         offset="0"
+         id="stop5582" />
+      <stop
+         style="stop-color:#c9f4ff;stop-opacity:0.82352942"
+         offset="1"
+         id="stop5584" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient5131">
+      <stop
+         style="stop-color:#9f70e0;stop-opacity:1;"
+         offset="0"
+         id="stop5133" />
+      <stop
+         id="stop4076"
+         offset="0.5"
+         style="stop-color:#8bcbc3;stop-opacity:0.58552629;" />
+      <stop
+         style="stop-color:#9f70e0;stop-opacity:1;"
+         offset="1"
+         id="stop5135" />
+    </linearGradient>
+    <filter
+       style="color-interpolation-filters:sRGB;"
+       inkscape:label="Drop Shadow"
+       id="filter5869">
+      <feFlood
+         flood-opacity="1"
+         flood-color="rgb(255,255,255)"
+         result="flood"
+         id="feFlood5871" />
+      <feComposite
+         in="flood"
+         in2="SourceGraphic"
+         operator="in"
+         result="composite1"
+         id="feComposite5873" />
+      <feGaussianBlur
+         in="composite1"
+         stdDeviation="1"
+         result="blur"
+         id="feGaussianBlur5875" />
+      <feOffset
+         dx="0"
+         dy="0"
+         result="offset"
+         id="feOffset5877" />
+      <feComposite
+         in="SourceGraphic"
+         in2="offset"
+         operator="over"
+         result="composite2"
+         id="feComposite5879" />
+    </filter>
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient5580"
+       id="radialGradient4213"
+       cx="272.50186"
+       cy="489.06186"
+       fx="272.50186"
+       fy="489.06186"
+       r="200"
+       gradientTransform="matrix(0.54891543,-0.12960213,0.12373213,0.52405362,65.335433,266.81285)"
+       gradientUnits="userSpaceOnUse" />
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#1a1a1a"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1.4"
+     inkscape:cx="105.66352"
+     inkscape:cy="321.0187"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0"
+     inkscape:window-width="1920"
+     inkscape:window-height="1021"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-73.999992,-356.36215)">
+    <rect
+       style="opacity:0.3;fill:url(#radialGradient4213);fill-opacity:1;stroke:none;stroke-width:30;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect5578"
+       width="400"
+       height="240"
+       x="73.999992"
+       y="356.36215" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:32px;line-height:125%;font-family:Impact;-inkscape-font-specification:Impact;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="401.14285"
+       y="529.07642"
+       id="text4146"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         x="401.14285"
+         y="529.07642"
+         id="tspan4150" /></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:40px;line-height:300.99999905%;font-family:sans-serif;letter-spacing:-11.98999977px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="85.555832"
+       y="392.01431"
+       id="text4205"
+       sodipodi:linespacing="301%"><tspan
+         sodipodi:role="line"
+         id="tspan4207"
+         x="85.555832"
+         y="392.01431"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:27.5px;font-family:Manteka;-inkscape-font-specification:Manteka;letter-spacing:0px;fill:#ffffff">Find us at glowing cat</tspan></text>
+    <text
+       sodipodi:linespacing="301%"
+       id="text4209"
+       y="582.99402"
+       x="283.10156"
+       style="font-style:normal;font-weight:normal;font-size:40px;line-height:300.99999905%;font-family:sans-serif;letter-spacing:-11.98999977px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       xml:space="preserve"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:27.5px;font-family:Manteka;-inkscape-font-specification:Manteka;letter-spacing:0px;fill:#ffffff"
+         y="582.99402"
+         x="283.10156"
+         id="tspan4211"
+         sodipodi:role="line">Watch in 3D!</tspan></text>
+  </g>
+</svg>
