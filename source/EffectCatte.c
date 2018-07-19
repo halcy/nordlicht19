@@ -37,6 +37,9 @@ static vertex* vbo_verts;
 C3D_RenderTarget* target_temp;
 C3D_Tex temp_tex;
 
+C3D_RenderTarget* target_temp_r;
+C3D_Tex temp_tex_r;
+
 #define MAX_VERTS 20000
 
 #include "Font.h"
@@ -90,6 +93,9 @@ void effectCatteInit() {
         
     C3D_TexInit(&temp_tex, 256, 512, GPU_RGBA8);
     target_temp = C3D_RenderTargetCreateFromTex(&temp_tex, GPU_TEXFACE_2D, 0, GPU_RB_DEPTH24_STENCIL8);
+    
+    C3D_TexInit(&temp_tex_r, 256, 512, GPU_RGBA8);
+    target_temp_r = C3D_RenderTargetCreateFromTex(&temp_tex_r, GPU_TEXFACE_2D, 0, GPU_RB_DEPTH24_STENCIL8);
     
     // Vertex Storage
     vbo_verts = (vertex*)linearAlloc(sizeof(vertex) * MAX_VERTS);
@@ -218,10 +224,10 @@ void effectCatteRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRig
     
     // Render to actual eye
     C3D_FrameDrawOn(targetLeft);
-    fullscreenQuadGlitch(temp_tex, 20, glitch_t, glitch);
+    fullscreenQuadGlitch(temp_tex, 40, glitch_t, glitch);
     
     // Overlay
-    C3D_AlphaBlend(GPU_BLEND_ADD, GPU_BLEND_ADD, GPU_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE);
+    C3D_AlphaBlend(GPU_BLEND_ADD, GPU_BLEND_ADD, GPU_SRC_ALPHA, GPU_ONE, GPU_SRC_ALPHA, GPU_ONE);
     fullscreenQuad(logo_tex, 0.0, 0.0);
     C3D_AlphaBlend(GPU_BLEND_ADD, GPU_BLEND_ADD, GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA);
     
@@ -229,8 +235,8 @@ void effectCatteRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRig
     
     if(iod > 0.0) {
         // Right eye
-        C3D_FrameBufClear(&target_temp->frameBuf, C3D_CLEAR_ALL, 0, 0);
-        C3D_FrameDrawOn(target_temp);
+        C3D_FrameBufClear(&target_temp_r->frameBuf, C3D_CLEAR_ALL, 0, 0);
+        C3D_FrameDrawOn(target_temp_r);
     
         // Background
         fullscreenQuad(screen_tex, iod, 1.0 / 10.0);
@@ -240,10 +246,10 @@ void effectCatteRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRig
         
         // Render to actual eye
         C3D_FrameDrawOn(targetRight);
-        fullscreenQuadGlitch(temp_tex, 20, glitch_t, glitch);
+        fullscreenQuadGlitch(temp_tex_r, 40, glitch_t, glitch);
         
         // Overlay
-        C3D_AlphaBlend(GPU_BLEND_ADD, GPU_BLEND_ADD, GPU_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE);
+        C3D_AlphaBlend(GPU_BLEND_ADD, GPU_BLEND_ADD, GPU_SRC_ALPHA, GPU_ONE, GPU_SRC_ALPHA, GPU_ONE);
         fullscreenQuad(logo_tex, 0.0, 0.0);
         C3D_AlphaBlend(GPU_BLEND_ADD, GPU_BLEND_ADD, GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA);
         
@@ -265,6 +271,7 @@ void effectCatteExit() {
     // Remove rendertarget (Crashes - whoops? maybe fine to delete only tex)
 //     C3D_RenderTargetDelete(target_temp);
     C3D_TexDelete(&temp_tex);
+    C3D_TexDelete(&temp_tex_r);
     
     // Free the shader program
     shaderProgramFree(&program);

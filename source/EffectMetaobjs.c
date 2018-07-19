@@ -54,6 +54,8 @@ const struct sync_track* sync_glitch_t;
 
 C3D_RenderTarget* target_temp;
 C3D_Tex temp_tex;
+C3D_RenderTarget* target_temp_r;
+C3D_Tex temp_tex_r;
 
 // A single metaball call.
 // function:
@@ -100,6 +102,9 @@ void effectMetaobjectsInit() {
     
     C3D_TexInit(&temp_tex, 256, 512, GPU_RGBA8);
     target_temp = C3D_RenderTargetCreateFromTex(&temp_tex, GPU_TEXFACE_2D, 0, GPU_RB_DEPTH24_STENCIL8);
+    
+    C3D_TexInit(&temp_tex_r, 256, 512, GPU_RGBA8);
+    target_temp_r = C3D_RenderTargetCreateFromTex(&temp_tex_r, GPU_TEXFACE_2D, 0, GPU_RB_DEPTH24_STENCIL8);
 }
 
 static inline float field(float xx, float yy, float zz, float* xa, float* ya, float* za, int bc) {
@@ -345,14 +350,14 @@ void effectMetaobjectsRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* tar
     
     // Render to actual eye
     C3D_FrameDrawOn(targetLeft);
-    fullscreenQuadGlitch(temp_tex, 20, glitch_t, glitch);
+    fullscreenQuadGlitch(temp_tex, 40, glitch_t, glitch);
     
     fade();
     
     if(iod > 0.0) {
         // Right eye
-        C3D_FrameBufClear(&target_temp->frameBuf, C3D_CLEAR_ALL, 0, 0);
-        C3D_FrameDrawOn(target_temp);
+        C3D_FrameBufClear(&target_temp_r->frameBuf, C3D_CLEAR_ALL, 0, 0);
+        C3D_FrameDrawOn(target_temp_r);
         
         // Fullscreen quad
         fullscreenQuad(screen_tex, iod, 1.0 / 10.0);
@@ -365,7 +370,7 @@ void effectMetaobjectsRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* tar
         
         // Render to actual eye
         C3D_FrameDrawOn(targetRight);
-        fullscreenQuadGlitch(temp_tex, 20, glitch_t, glitch);
+        fullscreenQuadGlitch(temp_tex_r, 40, glitch_t, glitch);
         
         fade();
     }
@@ -382,6 +387,7 @@ void effectMetaobjectsExit() {
     // Remove rendertarget (Crashes - whoops? maybe fine to delete only tex)
 //     C3D_RenderTargetDelete(target_temp);
     C3D_TexDelete(&temp_tex);
+    C3D_TexDelete(&temp_tex_r);    
     
     // Free the VBOs
     linearFree(vboVerts);

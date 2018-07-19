@@ -164,7 +164,7 @@ void effectTunnel2Draw(float iod) {
     AttrInfo_AddLoader(attrInfo, 2, GPU_FLOAT, 3); // v2=normal
 
     // Compute the projection matrix
-    Mtx_PerspStereoTilt(&projection, 65.0f*M_PI/180.0f, 400.0f/240.0f, 0.01f, 1000.0f, iod, 2.0f, false);
+    Mtx_PerspStereoTilt(&projection, 60.0f*M_PI/180.0f, 400.0f/240.0f, 0.01f, 1000.0f, iod, 2.0f, false);
 
     // Bind texture to the first texture unit
     C3D_TexBind(0, &sphere_tex);
@@ -172,7 +172,7 @@ void effectTunnel2Draw(float iod) {
     // Calculate the modelView matrix
     C3D_Mtx modelView;
     Mtx_Identity(&modelView);
-    Mtx_Translate(&modelView, 0.0, 0.0, 0.0, false);
+    Mtx_Translate(&modelView, 0.0, -0.2, 0.0, false);
     
     // Update the uniforms
     C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLoc_projection, &projection);

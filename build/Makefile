@@ -2,9 +2,9 @@
 BASEDIR := ../
 
 # Binary name, author name, desc
-TARGET := demobase
+TARGET := nordlicht18
 AUTHOR := SVatG
-DESC := demo basecode
+DESC := Raumfahrtaufgabenuebertragungsgesetz
 
 # Working directories
 BUILD := $(BASEDIR)/build

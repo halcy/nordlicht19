@@ -41,9 +41,9 @@ float* valueGrid;
 #include "Font.h"
 #include "MonoFont.h"
 
-extern Font OL16Font; 
+extern Font OL16; 
 
-#define SCROLLERTEXT "TiTAN   k2   Eos   Alcatraz   Nuance   nordlicht   nordlicht   nordlicht"
+#define SCROLLERTEXT "          TiTAN   k2   Eos   Alcatraz   Nuance   logicoma   truck   netpoet   ]~{|}       "
 
 static Pixel* scroll_pixels;
 static Bitmap scroller;
@@ -297,7 +297,7 @@ void effectScrollerRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* target
     float scroller_time = sync_get_val(sync_scroll_pos, row);
     float sshift = -scroller_time * 0.04;
     FillBitmap(&scroller, RGBAf(0.0, 0.0, 0.0, 0.0));
-    DrawSimpleString(&scroller, &OL16Font, sshift, 6, RGBAf(0.3, 0.6 + 3 * 0.1, 1.0 - 3 * 0.3, 1.0), SCROLLERTEXT);
+    DrawSimpleString(&scroller, &OL16, sshift, 6, RGBAf(0.3, 0.6 + 3 * 0.1, 1.0 - 3 * 0.3, 1.0), SCROLLERTEXT);
 
     C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
     
