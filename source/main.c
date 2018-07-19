@@ -34,7 +34,7 @@ double audio_get_row() {
 }
 
 #ifdef SYNC_PLAYER
-//#define DEV_MODE
+#define DEV_MODE
 #endif
 
 #ifndef SYNC_PLAYER
@@ -183,7 +183,7 @@ int main() {
     ndspChnWaveBufAdd(0, &wave_buffer[1]);
     
     // Start up first effect
-    int current_effect = 4;
+    int current_effect = 2;
 #ifndef DEV_MODE
     current_effect = 0;
 #endif

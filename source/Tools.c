@@ -1,5 +1,6 @@
 #include "Tools.h"
 #include "vshader_flat_shbin.h"
+#include "Perlin.h"
 
 int RandomInteger() {
     return rand();
@@ -40,42 +41,9 @@ float lutZero(float input, float ignored) {
     return(0.0);
 }
 
-static DVLB_s* vshader_flat_dvlb;
-static shaderProgram_s shaderProgramFlat;
-static int shaderProgramFlatCompiled;
-static C3D_Mtx projection;
-void fullscreenQuad(C3D_Tex texture, float iod, float iodmult) {
-    
-    if(shaderProgramFlatCompiled == 0) {
-        vshader_flat_dvlb = DVLB_ParseFile((u32*)vshader_flat_shbin, vshader_flat_shbin_size);
-        shaderProgramInit(&shaderProgramFlat);
-        shaderProgramSetVsh(&shaderProgramFlat, &vshader_flat_dvlb->DVLE[0]);
-        shaderProgramFlatCompiled = 1;
-    }
-    C3D_BindProgram(&shaderProgramFlat);
-
-    // Get the location of the uniforms
-    int uLocProjectionFlat = shaderInstanceGetUniformLocation(shaderProgramFlat.vertexShader, "projection");
-
-    // Configure attributes for use with the vertex shader
-    // Attribute format and element count are ignored in immediate mode
-    C3D_AttrInfo* attrInfo = C3D_GetAttrInfo();
-    AttrInfo_Init(attrInfo);
-    AttrInfo_AddLoader(attrInfo, 0, GPU_FLOAT, 3); // v0=position
-    AttrInfo_AddLoader(attrInfo, 1, GPU_FLOAT, 2); // v2=texcoord
-
-    // Compute the projection matrix
-    // Note: we're setting top to 240 here so origin is at top left.
-    Mtx_OrthoTilt(&projection, 0.0, 400.0, 240.0, 0.0, 0.0, 1.0, true);
-    C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLocProjectionFlat, &projection);
-    
-    C3D_TexSetFilter(&texture, GPU_LINEAR, GPU_NEAREST);
-    C3D_TexBind(0, &texture);
-
+void resetShadeEnv() {
     C3D_LightEnvBind(0);
     
-    // Configure the first fragment shading substage to just pass through the texture color
-    // See https://www.opengl.org/sdk/docs/man2/xhtml/glTexEnv.xml for more insight
     C3D_TexEnv* env = C3D_GetTexEnv(0);
     C3D_TexEnvSrc(env, C3D_Both, GPU_TEXTURE0, 0, 0);
     C3D_TexEnvOp(env, C3D_Both, 0, 0, 0);
@@ -95,6 +63,39 @@ void fullscreenQuad(C3D_Tex texture, float iod, float iodmult) {
     C3D_TexEnvSrc(env4, C3D_Both, GPU_PREVIOUS, 0, 0);
     C3D_TexEnvOp(env4, C3D_Both, 0, 0, 0);
     C3D_TexEnvFunc(env4, C3D_Both, GPU_REPLACE);
+}
+
+static DVLB_s* vshader_flat_dvlb;
+static shaderProgram_s shaderProgramFlat;
+static int shaderProgramFlatCompiled;
+static C3D_Mtx projection;
+
+void ensureFlatShader() {
+    if(shaderProgramFlatCompiled == 0) {
+        vshader_flat_dvlb = DVLB_ParseFile((u32*)vshader_flat_shbin, vshader_flat_shbin_size);
+        shaderProgramInit(&shaderProgramFlat);
+        shaderProgramSetVsh(&shaderProgramFlat, &vshader_flat_dvlb->DVLE[0]);
+        shaderProgramFlatCompiled = 1;
+    }
+    C3D_BindProgram(&shaderProgramFlat);
+    
+    int uLocProjectionFlat = shaderInstanceGetUniformLocation(shaderProgramFlat.vertexShader, "projection");
+    Mtx_OrthoTilt(&projection, 0.0, 400.0, 240.0, 0.0, 0.0, 1.0, true);
+    C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLocProjectionFlat, &projection);
+    
+    C3D_AttrInfo* attrInfo = C3D_GetAttrInfo();
+    AttrInfo_Init(attrInfo);
+    AttrInfo_AddLoader(attrInfo, 0, GPU_FLOAT, 3);
+    AttrInfo_AddLoader(attrInfo, 1, GPU_FLOAT, 2);
+}
+
+void fullscreenQuad(C3D_Tex texture, float iod, float iodmult) {
+    ensureFlatShader();
+    
+    C3D_TexSetFilter(&texture, GPU_LINEAR, GPU_NEAREST);
+    C3D_TexBind(0, &texture);
+    
+    resetShadeEnv();
     
     float preShift = iodmult > 0.0 ? 0.05 : 0.0;
     float textureLeft = -iod * iodmult + preShift;
@@ -127,6 +128,96 @@ void fullscreenQuad(C3D_Tex texture, float iod, float iodmult) {
         C3D_ImmSendAttrib(textureRight, textureTop, 0.0f, 0.0f);
 
     C3D_ImmDrawEnd();
+}
+
+void fullscreenQuadFlat(C3D_Tex texture) {
+    ensureFlatShader();
+
+    C3D_TexSetFilter(&texture, GPU_LINEAR, GPU_NEAREST);
+    C3D_TexBind(0, &texture);
+    
+    resetShadeEnv();
+    
+    float textureLeft = 0.0;
+    float textureRight = 1.0;
+    float textureTop = 0.0;
+    float textureBottom = 1.0;
+    
+    // Turn off depth test as well as write
+    C3D_DepthTest(false, GPU_GEQUAL, GPU_WRITE_COLOR);
+    
+    // Draw a textured quad directly
+    C3D_ImmDrawBegin(GPU_TRIANGLES);
+        
+        C3D_ImmSendAttrib(0.0, 0.0, 0.5f, 0.0f);
+        C3D_ImmSendAttrib(textureRight, textureBottom, 0.0f, 0.0f); 
+
+        C3D_ImmSendAttrib(SCREEN_WIDTH, SCREEN_HEIGHT, 0.5f, 0.0f);
+        C3D_ImmSendAttrib(textureLeft, textureTop, 0.0f, 0.0f);
+
+        C3D_ImmSendAttrib(SCREEN_WIDTH, 0.0, 0.5f, 0.0f);
+        C3D_ImmSendAttrib(textureRight, textureTop, 0.0f, 0.0f);
+
+        C3D_ImmSendAttrib(0.0, 0.0, 0.5f, 0.0f);
+        C3D_ImmSendAttrib(textureRight, textureBottom, 0.0f, 0.0f);
+
+        C3D_ImmSendAttrib(0.0, SCREEN_HEIGHT, 0.5f, 0.0f);
+        C3D_ImmSendAttrib(textureLeft, textureBottom, 0.0f, 0.0f);
+
+        C3D_ImmSendAttrib(SCREEN_WIDTH, SCREEN_HEIGHT, 0.5f, 0.0f);
+        C3D_ImmSendAttrib(textureLeft, textureTop, 0.0f, 0.0f);
+
+    C3D_ImmDrawEnd();
+}
+
+void fullscreenQuadGlitch(C3D_Tex texture, int parts, float time, float amount) {
+    ensureFlatShader();
+
+    C3D_TexSetFilter(&texture, GPU_LINEAR, GPU_NEAREST);
+    C3D_TexBind(0, &texture);
+    
+    resetShadeEnv();
+    
+    
+    // Turn off depth test as well as write
+    C3D_DepthTest(false, GPU_GEQUAL, GPU_WRITE_COLOR);
+    
+    for(int i = 0; i < parts; i++) {
+        float quadTop = ((float)i / (float)parts) * SCREEN_HEIGHT;
+        float quadBottom = ((float)(i+1) / (float)parts) * SCREEN_HEIGHT;
+        float textureLeft = ((float)(i+1) / (float)parts);
+        float textureRight = ((float)(i) / (float)parts);
+        
+        
+        float distAmt = pow(sin(noise_at(i * 0.05 - time, 0.1, 0.1)) * amount, 3.0);
+        float textureTop = 0.0 + distAmt;
+        float textureBottom = 1.0 + distAmt;
+        
+        float distAmt2 = pow(sin(noise_at((i + 1) * 0.05 - time, 0.1, 0.1)) * amount, 3.0);
+        float textureTopLeft = 0.0 + distAmt2;
+        float textureBottomLeft = 1.0 + distAmt2;
+        
+        // Draw a textured quad directly
+        C3D_ImmDrawBegin(GPU_TRIANGLES);
+            C3D_ImmSendAttrib(0.0, quadTop, 0.5f, 0.0f);
+            C3D_ImmSendAttrib(textureRight, textureBottom, 0.0f, 0.0f); 
+
+            C3D_ImmSendAttrib(SCREEN_WIDTH, quadBottom, 0.5f, 0.0f);
+            C3D_ImmSendAttrib(textureLeft, textureTopLeft, 0.0f, 0.0f);
+
+            C3D_ImmSendAttrib(SCREEN_WIDTH, quadTop, 0.5f, 0.0f);
+            C3D_ImmSendAttrib(textureRight, textureTop, 0.0f, 0.0f);
+
+            C3D_ImmSendAttrib(0.0, quadTop, 0.5f, 0.0f);
+            C3D_ImmSendAttrib(textureRight, textureBottom, 0.0f, 0.0f);
+
+            C3D_ImmSendAttrib(0.0, quadBottom, 0.5f, 0.0f);
+            C3D_ImmSendAttrib(textureLeft, textureBottomLeft, 0.0f, 0.0f);
+
+            C3D_ImmSendAttrib(SCREEN_WIDTH, quadBottom, 0.5f, 0.0f);
+            C3D_ImmSendAttrib(textureLeft, textureTopLeft, 0.0f, 0.0f);
+        C3D_ImmDrawEnd();
+    }
 }
 
 int32_t mulf32(int32_t a, int32_t b) {

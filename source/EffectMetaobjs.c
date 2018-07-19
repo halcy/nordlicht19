@@ -50,6 +50,9 @@ const struct sync_track* sync_col;
 #define GRID_OFFSET (GRID_EXTENT / 2.0)
 #define GRID(x, y, z) ((x) + (y) * GRID_X + (z) * GRID_X * GRID_Y)
 
+C3D_RenderTarget* target_temp;
+C3D_Tex temp_tex;
+
 // A single metaball call.
 // function:
 // f(x,y,z) = 1 / ((x − x0)^2 + (y − y0)^2 + (z − z0)^2)
@@ -90,6 +93,9 @@ void effectMetaobjectsInit() {
     C3D_TexInit(&logo_tex, SCREEN_TEXTURE_HEIGHT, SCREEN_TEXTURE_WIDTH, GPU_RGBA8);
     C3D_TexUpload(&logo_tex, meta_fg_bin);
     C3D_TexSetFilter(&logo_tex, GPU_LINEAR, GPU_NEAREST);
+    
+    C3D_TexInit(&temp_tex, 256, 512, GPU_RGBA8);
+    target_temp = C3D_RenderTargetCreateFromTex(&temp_tex, GPU_TEXFACE_2D, 0, GPU_RB_DEPTH24_STENCIL8);
 }
 
 static inline float field(float xx, float yy, float zz, float* xa, float* ya, float* za, int bc) {
@@ -318,8 +324,9 @@ void effectMetaobjectsRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* tar
     
     C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
     
-    // Left eye
-    C3D_FrameDrawOn(targetLeft);
+    // Temp target
+    C3D_FrameBufClear(&target_temp->frameBuf, C3D_CLEAR_ALL, 0, 0);
+    C3D_FrameDrawOn(target_temp);
     
     // Fullscreen quad
     fullscreenQuad(screen_tex, -iod, 1.0 / 10.0);
@@ -330,12 +337,17 @@ void effectMetaobjectsRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* tar
     // Overlay
     fullscreenQuad(logo_tex, 0.0, 0.0);
     
+    // Render to actual eye
+    C3D_FrameDrawOn(targetLeft);
+    fullscreenQuadGlitch(temp_tex, 20, row * 0.1, 0.3);
+    
     fade();
     
     if(iod > 0.0) {
         // Right eye
-        C3D_FrameDrawOn(targetRight);
-    
+        C3D_FrameBufClear(&target_temp->frameBuf, C3D_CLEAR_ALL, 0, 0);
+        C3D_FrameDrawOn(target_temp);
+        
         // Fullscreen quad
         fullscreenQuad(screen_tex, iod, 1.0 / 10.0);
     
@@ -344,6 +356,10 @@ void effectMetaobjectsRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* tar
         
         // Overlay
         fullscreenQuad(logo_tex, 0.0, 0.0);
+        
+        // Render to actual eye
+        C3D_FrameDrawOn(targetRight);
+        fullscreenQuadGlitch(temp_tex, 20, row * 0.1, 0.3);
         
         fade();
     }
@@ -356,7 +372,11 @@ void effectMetaobjectsExit() {
     C3D_TexDelete(&cubes_tex);
     C3D_TexDelete(&screen_tex);
     C3D_TexDelete(&logo_tex);
+    C3D_TexDelete(&temp_tex);
 
+    // Remove rendertarget
+    C3D_RenderTargetDelete(target_temp);
+    
     // Free the VBOs
     linearFree(vboVerts);
     

@@ -64,6 +64,8 @@ extern float lutZero(float input, float offset);
 extern float lutPosPower(float input, float expo);
 
 extern void fullscreenQuad(C3D_Tex texture, float iod, float iodmult);
+extern void fullscreenQuadFlat(C3D_Tex texture);
+extern void fullscreenQuadGlitch(C3D_Tex texture, int parts, float time, float amount);
 
 extern int32_t mulf32(int32_t a, int32_t b);
 extern int32_t divf32(int32_t a, int32_t b);
