@@ -251,7 +251,7 @@ int main() {
             u8* fbl = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
             
             char fname[255];
-            sprintf(fname, "fb_left_%08d.raw", fc);
+            sprintf(fname, "3ds/nds/fb_left_%08d.raw", fc);
             
             FILE* file = fopen(fname,"w");
             fwrite(fbl, sizeof(int32_t), SCREEN_HEIGHT * SCREEN_WIDTH, file);
