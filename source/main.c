@@ -246,6 +246,9 @@ int main() {
         effect_list[current_effect].render(targetLeft, targetRight, iod, row);
         
         if(DUMPFRAMES) {
+            gspWaitForP3D();
+            gspWaitForPPF();
+            
             u8* fbl = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
             
             char fname[255];
