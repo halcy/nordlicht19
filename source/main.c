@@ -96,8 +96,9 @@ void audio_callback(void* ignored) {
 }
 
 int main() {
-    bool DUMPFRAMES = false;
-    
+    bool DUMPFRAMES = true;
+    bool DUMPFRAMES_3D = true;
+
     // Set up effect sequence
     effect effect_list[10];
     effect_list[0].init = effectLogoInit;
@@ -257,6 +258,17 @@ int main() {
             fwrite(fbl, sizeof(int32_t), SCREEN_HEIGHT * SCREEN_WIDTH, file);
             fflush(file);
             fclose(file);
+            
+            if(DUMPFRAMES_3D) {
+                u8* fbr = gfxGetFramebuffer(GFX_TOP, GFX_RIGHT, NULL, NULL);
+                
+                sprintf(fname, "fb_right_%08d.raw", fc);
+                
+                file = fopen(fname,"w");
+                fwrite(fbr, sizeof(int32_t), SCREEN_HEIGHT * SCREEN_WIDTH, file);
+                fflush(file);
+                fclose(file);
+            }
         }
         
         fc++;   
