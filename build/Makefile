@@ -2,7 +2,7 @@
 BASEDIR := ../
 
 # Binary name, author name, desc
-TARGET := nordlicht18_dumpframes
+TARGET := nordlicht18
 AUTHOR := SVatG
 DESC := Raumfahrtaufgabenuebertragungsgesetz
 

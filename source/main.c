@@ -96,8 +96,8 @@ void audio_callback(void* ignored) {
 }
 
 int main() {
-    bool DUMPFRAMES = true;
-    bool DUMPFRAMES_3D = true;
+    bool DUMPFRAMES = false;
+    bool DUMPFRAMES_3D = false;
 
     // Set up effect sequence
     effect effect_list[10];
@@ -252,7 +252,7 @@ int main() {
             u8* fbl = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
             
             char fname[255];
-            sprintf(fname, "3ds/nds/fb_left_%08d.raw", fc);
+            sprintf(fname, "3ds/frames/fb_left_%08d.raw", fc);
             
             FILE* file = fopen(fname,"w");
             fwrite(fbl, sizeof(int32_t), SCREEN_HEIGHT * SCREEN_WIDTH, file);
@@ -262,7 +262,7 @@ int main() {
             if(DUMPFRAMES_3D) {
                 u8* fbr = gfxGetFramebuffer(GFX_TOP, GFX_RIGHT, NULL, NULL);
                 
-                sprintf(fname, "fb_right_%08d.raw", fc);
+                sprintf(fname, "3ds/frames/fb_right_%08d.raw", fc);
                 
                 file = fopen(fname,"w");
                 fwrite(fbr, sizeof(int32_t), SCREEN_HEIGHT * SCREEN_WIDTH, file);
