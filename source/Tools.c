@@ -46,22 +46,26 @@ void resetShadeEnv() {
     
     C3D_TexEnv* env = C3D_GetTexEnv(0);
     C3D_TexEnvSrc(env, C3D_Both, GPU_TEXTURE0, 0, 0);
-    C3D_TexEnvOp(env, C3D_Both, 0, 0, 0);
+    C3D_TexEnvOpRgb(env, 0, 0, 0);
+    C3D_TexEnvOpAlpha(env, 0, 0, 0);
     C3D_TexEnvFunc(env, C3D_Both, GPU_REPLACE);
     
     C3D_TexEnv* env2 = C3D_GetTexEnv(1);
     C3D_TexEnvSrc(env2, C3D_Both, GPU_PREVIOUS, 0, 0);
-    C3D_TexEnvOp(env2, C3D_Both, 0, 0, 0);
+    C3D_TexEnvOpRgb(env2, 0, 0, 0);
+    C3D_TexEnvOpAlpha(env2, 0, 0, 0);
     C3D_TexEnvFunc(env2, C3D_Both, GPU_REPLACE);
     
     C3D_TexEnv* env3 = C3D_GetTexEnv(2);
     C3D_TexEnvSrc(env3, C3D_Both, GPU_PREVIOUS, 0, 0);
-    C3D_TexEnvOp(env3, C3D_Both, 0, 0, 0);
+    C3D_TexEnvOpRgb(env3, 0, 0, 0);
+    C3D_TexEnvOpAlpha(env3, 0, 0, 0);
     C3D_TexEnvFunc(env3, C3D_Both, GPU_REPLACE);
     
     C3D_TexEnv* env4 = C3D_GetTexEnv(3);
     C3D_TexEnvSrc(env4, C3D_Both, GPU_PREVIOUS, 0, 0);
-    C3D_TexEnvOp(env4, C3D_Both, 0, 0, 0);
+    C3D_TexEnvOpRgb(env4, 0, 0, 0);
+    C3D_TexEnvOpAlpha(env4, 0, 0, 0);
     C3D_TexEnvFunc(env4, C3D_Both, GPU_REPLACE);
 }
 

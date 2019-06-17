@@ -9,7 +9,6 @@
 #include "Tools.h"
 #include <vshader_shbin.h>
 #include "logo_fg_bin.h"
-#include "tunnel_glow_bin.h"
 #include "Perlin.h"
 
 #include "Logo.h"
@@ -202,17 +201,17 @@ void effectLogoDraw(float iod, float row) {
     
     C3D_TexEnv* env = C3D_GetTexEnv(0);
     C3D_TexEnvSrc(env, C3D_RGB, GPU_FRAGMENT_PRIMARY_COLOR, GPU_FRAGMENT_SECONDARY_COLOR, 0);
-    C3D_TexEnvOp(env, C3D_RGB, 0, 0, 0);
+    C3D_TexEnvOpRgb(env, 0, 0, 0);
     C3D_TexEnvFunc(env, C3D_RGB, GPU_ADD);
 
     C3D_TexEnv* env2 = C3D_GetTexEnv(1);
     C3D_TexEnvSrc(env2, C3D_RGB, GPU_TEXTURE0, GPU_PREVIOUS, 0);
-    C3D_TexEnvOp(env2, C3D_RGB, 0, 0, 0);
+    C3D_TexEnvOpRgb(env2, 0, 0, 0);
     C3D_TexEnvFunc(env2, C3D_RGB, GPU_MODULATE);
     
     C3D_TexEnv* env3 = C3D_GetTexEnv(2);
     C3D_TexEnvSrc(env3, C3D_RGB, GPU_FRAGMENT_SECONDARY_COLOR, GPU_PREVIOUS, 0);
-    C3D_TexEnvOp(env3, C3D_RGB, GPU_TEVOP_RGB_SRC_ALPHA , 0, 0);
+    C3D_TexEnvOpRgb(env3, GPU_TEVOP_RGB_SRC_ALPHA , 0, 0);
     C3D_TexEnvFunc(env3, C3D_RGB, GPU_ADD);
     
     static const C3D_Material lightMaterial =
@@ -313,6 +312,8 @@ void effectLogoRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRigh
     gspWaitForPPF();
     
     C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+    C3D_RenderTargetClear(targetLeft, C3D_CLEAR_ALL, 0, 0);
+    C3D_RenderTargetClear(targetRight, C3D_CLEAR_ALL, 0, 0);   
     
     // Left eye
     C3D_FrameDrawOn(targetLeft);

@@ -105,25 +105,25 @@ int main() {
     effect_list[0].render = effectLogoRender;
     effect_list[0].exit = effectLogoExit;
     
-    effect_list[1].init = effectTunnelInit;
-    effect_list[1].render = effectTunnelRender;
-    effect_list[1].exit = effectTunnelExit;
+    effect_list[1].init = effectLogoInit;
+    effect_list[1].render = effectLogoRender;
+    effect_list[1].exit = effectLogoExit;
     
-    effect_list[2].init = effectMetaobjectsInit;
-    effect_list[2].render = effectMetaobjectsRender;
-    effect_list[2].exit = effectMetaobjectsExit;
+    effect_list[2].init = effectLogoInit;
+    effect_list[2].render = effectLogoRender;
+    effect_list[2].exit = effectLogoExit;
     
-    effect_list[3].init = effectTunnel2Init;
-    effect_list[3].render = effectTunnel2Render;
-    effect_list[3].exit = effectTunnel2Exit;
+    effect_list[3].init = effectLogoInit;
+    effect_list[3].render = effectLogoRender;
+    effect_list[3].exit = effectLogoExit;
     
-    effect_list[4].init = effectScrollerInit;
-    effect_list[4].render = effectScrollerRender;
-    effect_list[4].exit = effectScrollerExit;
+    effect_list[4].init = effectLogoInit;
+    effect_list[4].render = effectLogoRender;
+    effect_list[4].exit = effectLogoExit;
     
-    effect_list[5].init = effectCatteInit;
-    effect_list[5].render = effectCatteRender;
-    effect_list[5].exit = effectCatteExit;
+    effect_list[5].init = effectLogoInit;
+    effect_list[5].render = effectLogoRender;
+    effect_list[5].exit = effectLogoExit;
     
     // Initialize graphics
     gfxInit(GSP_RGBA8_OES, GSP_BGR8_OES, false);
@@ -134,8 +134,6 @@ int main() {
     // Initialize the render target
     C3D_RenderTarget* targetLeft = C3D_RenderTargetCreate(240, 400, GPU_RB_RGBA8, GPU_RB_DEPTH24_STENCIL8);
     C3D_RenderTarget* targetRight = C3D_RenderTargetCreate(240, 400, GPU_RB_RGBA8, GPU_RB_DEPTH24_STENCIL8);
-    C3D_RenderTargetSetClear(targetLeft, C3D_CLEAR_ALL, CLEAR_COLOR, 0);
-    C3D_RenderTargetSetClear(targetRight, C3D_CLEAR_ALL, CLEAR_COLOR, 0);
     C3D_RenderTargetSetOutput(targetLeft, GFX_TOP, GFX_LEFT,  DISPLAY_TRANSFER_FLAGS);
     C3D_RenderTargetSetOutput(targetRight, GFX_TOP, GFX_RIGHT, DISPLAY_TRANSFER_FLAGS);
 
