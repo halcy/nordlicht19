@@ -1,10 +1,10 @@
 /* Copyright (C) 2010 Contributors
- * For conditions of distribution and use, see copyright notice in COPYING
- */
+* For conditions of distribution and use, see copyright notice in COPYING
+*/
 
 // define SYNC_PLAYER here, if desired.
 // remember to make clean, if you do
-#define SYNC_PLAYER
+// #define SYNC_PLAYER
 
 #ifndef SYNC_H
 #define SYNC_H
@@ -31,9 +31,9 @@ void sync_destroy_device(struct sync_device *);
 
 #ifndef SYNC_PLAYER
 struct sync_cb {
-	void (*pause)(void *, int);
-	void (*set_row)(void *, int);
-	int (*is_playing)(void *);
+    void (*pause)(void *, int);
+    void (*set_row)(void *, int);
+    int (*is_playing)(void *);
 };
 #define SYNC_DEFAULT_PORT 1338
 int sync_tcp_connect(struct sync_device *, const char *, unsigned short);
@@ -43,9 +43,9 @@ int sync_save_tracks(const struct sync_device *);
 #endif /* defined(SYNC_PLAYER) */
 
 struct sync_io_cb {
-	void *(*open)(const char *filename, const char *mode);
-	size_t (*read)(void *ptr, size_t size, size_t nitems, void *stream);
-	int (*close)(void *stream);
+    void *(*open)(const char *filename, const char *mode);
+    size_t (*read)(void *ptr, size_t size, size_t nitems, void *stream);
+    int (*close)(void *stream);
 };
 void sync_set_io_cb(struct sync_device *d, struct sync_io_cb *cb);
 

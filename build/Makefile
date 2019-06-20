@@ -2,7 +2,7 @@
 BASEDIR := ../
 
 # Binary name, author name, desc
-TARGET := nordlicht18
+TARGET := nordlicht19
 AUTHOR := SVatG
 DESC := Raumfahrtaufgabenuebertragungsgesetz
 

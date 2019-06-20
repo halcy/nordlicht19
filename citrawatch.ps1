@@ -1,8 +1,8 @@
-$citra =  'C:\Users\halcy\AppData\Local\citra\app-0.1.463\citra-qt.exe'
+$citra =  'C:\Users\halcy\Desktop\3DSDev\nordlicht19\citra-windows-mingw-20190619-bb776e2\citra-qt.exe'
 
 $watcher = New-Object System.IO.FileSystemWatcher
 $watcher.Path = get-location
-$watcher.Filter = "*.3dsx"
+$watcher.Filter = "run.3dsx"
 $watcher.IncludeSubdirectories = $false
 $watcher.EnableRaisingEvents = $true
 $watcher.NotifyFilter = [System.IO.NotifyFilters]::LastWrite -bor [System.IO.NotifyFilters]::FileName
