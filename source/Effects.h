@@ -3,9 +3,9 @@
 
 #include "Tools.h"
 
-extern void effectLogoInit();
-extern void effectLogoRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRight, float iod, float time);
-extern void effectLogoExit();
+extern void effectSunInit();
+extern void effectSunRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRight, float iod, float time);
+extern void effectSunExit();
 
 typedef void (*init_fun_t)();
 typedef void (*render_fun_t)(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRight, float iod, float time);

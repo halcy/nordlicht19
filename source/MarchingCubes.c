@@ -317,7 +317,6 @@ uint32_t polygonise(vec3_t* corners, float* values, uint32_t isolevel, vertex* v
     uint8_t cubeindex;
     vec3_t vertlist[12];
 
-    
     // Determine the index into the edge table which
     // tells us which vertices are inside of the surface
     cubeindex = 0;

@@ -63,7 +63,7 @@
 
     rcp r0.z, r4.x
     mul r0.xy, r5, r4
-
+    
 degenerate:
     mov outnq, r0
     mov outclr, ones

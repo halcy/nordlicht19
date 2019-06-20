@@ -101,29 +101,29 @@ int main() {
 
     // Set up effect sequence
     effect effect_list[10];
-    effect_list[0].init = effectLogoInit;
-    effect_list[0].render = effectLogoRender;
-    effect_list[0].exit = effectLogoExit;
+    effect_list[0].init = effectSunInit;
+    effect_list[0].render = effectSunRender;
+    effect_list[0].exit = effectSunExit;
     
-    effect_list[1].init = effectLogoInit;
-    effect_list[1].render = effectLogoRender;
-    effect_list[1].exit = effectLogoExit;
+    effect_list[1].init = effectSunInit;
+    effect_list[1].render = effectSunRender;
+    effect_list[1].exit = effectSunExit;
     
-    effect_list[2].init = effectLogoInit;
-    effect_list[2].render = effectLogoRender;
-    effect_list[2].exit = effectLogoExit;
+    effect_list[2].init = effectSunInit;
+    effect_list[2].render = effectSunRender;
+    effect_list[2].exit = effectSunExit;
     
-    effect_list[3].init = effectLogoInit;
-    effect_list[3].render = effectLogoRender;
-    effect_list[3].exit = effectLogoExit;
+    effect_list[3].init = effectSunInit;
+    effect_list[3].render = effectSunRender;
+    effect_list[3].exit = effectSunExit;
     
-    effect_list[4].init = effectLogoInit;
-    effect_list[4].render = effectLogoRender;
-    effect_list[4].exit = effectLogoExit;
+    effect_list[4].init = effectSunInit;
+    effect_list[4].render = effectSunRender;
+    effect_list[4].exit = effectSunExit;
     
-    effect_list[5].init = effectLogoInit;
-    effect_list[5].render = effectLogoRender;
-    effect_list[5].exit = effectLogoExit;
+    effect_list[5].init = effectSunInit;
+    effect_list[5].render = effectSunRender;
+    effect_list[5].exit = effectSunExit;
     
     // Initialize graphics
     gfxInit(GSP_RGBA8_OES, GSP_BGR8_OES, false);

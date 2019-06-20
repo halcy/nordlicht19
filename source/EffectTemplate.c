@@ -11,7 +11,7 @@
 
 const struct sync_track* sync_testval;
 
-void effectLogoInit() {
+void effectTemplateInit() {
     // initialize everything here
     // Example of how to get a sync track
     sync_testval = sync_get_track(rocket, "template.testval");
@@ -37,6 +37,7 @@ void effectTemplateDraw(float iod) {
 
 void effectTemplateRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRight, float iod, float row) {
     // Update state
+    effectTemplateUpdate(row);
     
     // Start frame
     C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
@@ -59,6 +60,6 @@ void effectTemplateRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* target
     C3D_FrameEnd(0);
 }
 
-void effectLogoExit() {
+void effectTemplateExit() {
    // Teardown here
 }

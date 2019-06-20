@@ -214,5 +214,6 @@ inline int buildCuboid(vertex* vert, vec3_t cp, vec3_t r, float hh, float vv) {
 }
 
 extern void fade();
+extern void resetShadeEnv();
 
 #endif
