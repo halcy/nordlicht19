@@ -26,11 +26,11 @@ NM := arm-none-eabi-nm
 LD := $(CC)
 
 # Tool flags
-ARCH := -g -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft -mword-relocations
+ARCH := -g -march=armv6k -mtune=mpcore -mfloat-abi=hard -mword-relocations
 CFLAGS := -Wno-missing-braces -O3 \
           -std=c99 \
 	  -fomit-frame-pointer -ffunction-sections \
-	  -mfloat-abi=hard -ffast-math \
+	  -mfloat-abi=hard -ffast-math -funsafe-math-optimizations \
 	  $(ARCH) -DARM11 -D_3DS \
 	  -DABGR32Pixels \
 	  $(foreach dir,$(LIBDIRS),-I$(dir)/include) -I$(BUILD)

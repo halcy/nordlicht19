@@ -1,7 +1,7 @@
 #include "MarchingCubes.h"
 
 // Table one: Edge lookup table.
-const int16_t edgeTable[256] = {
+const int32_t edgeTable[256] = {
     0x0  , 0x109, 0x203, 0x30a, 0x406, 0x50f, 0x605, 0x70c,
     0x80c, 0x905, 0xa0f, 0xb06, 0xc0a, 0xd03, 0xe09, 0xf00,
     0x190, 0x99 , 0x393, 0x29a, 0x596, 0x49f, 0x795, 0x69c,
@@ -36,8 +36,8 @@ const int16_t edgeTable[256] = {
     0x70c, 0x605, 0x50f, 0x406, 0x30a, 0x203, 0x109, 0x0
 };
 
-// Table 2: Vertex lookup table.
-const int8_t triTable[256*16] = {
+// Table two: Vertex lookup table.
+const int32_t triTable[256*16] = {
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
     0, 8, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
     0, 1, 9, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -299,7 +299,7 @@ const int8_t triTable[256*16] = {
 
 // Linearly interpolate the position where an isosurface cuts
 // an edge between two vertices, each with their own scalar value
-inline vec3_t vertexInterp(float isolevel, vec3_t p1, vec3_t p2, float valp1, float valp2) {    
+static inline vec3_t vertexInterp(float isolevel, vec3_t p1, vec3_t p2, float valp1, float valp2) {    
     if(valp1 == valp2) {
         return(p1);
     }
@@ -309,7 +309,7 @@ inline vec3_t vertexInterp(float isolevel, vec3_t p1, vec3_t p2, float valp1, fl
 }
 
 // Same as above but also normals
-inline vec3_t vertexInterpWithNormal(float isolevel, vec3_t p1, vec3_t p2, float valp1, float valp2, vec3_t n1, vec3_t n2, vec3_t* normal_out) {    
+static inline vec3_t vertexInterpWithNormal(float isolevel, vec3_t p1, vec3_t p2, float valp1, float valp2, vec3_t n1, vec3_t n2, vec3_t* normal_out) {    
     if(valp1 == valp2) {
         return(p1);
     }
@@ -372,6 +372,7 @@ uint32_t polygonise(vec3_t* corners, float* values, vec3_t* normals, uint32_t is
     }
     
     // Find the vertices where the surface intersects the cube
+    int emitVerts = 0;
     if(edgeTable[cubeindex] & 1) {
         vertlist[0] = vertexInterpWithNormal(isolevel, corners[0], corners[1], values[0], values[1], normals[0], normals[1], &normlist[0]);
     }
@@ -411,6 +412,7 @@ uint32_t polygonise(vec3_t* corners, float* values, vec3_t* normals, uint32_t is
 
     // Create the triangle
     uint32_t numVerts = 0;
+    
     for(i=0; triTable[16 * cubeindex + i] != -1; i += 3) {
         vec3_t a = vec3(
             vertlist[triTable[16 * cubeindex + i]].x,

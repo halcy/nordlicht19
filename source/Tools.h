@@ -29,6 +29,9 @@
 #include "VectorLibrary/Vector.h"
 #include "VectorLibrary/Matrix.h"
 
+#define min(a,b) (((a)<(b))?(a):(b))
+#define max(a,b) (((a)>(b))?(a):(b))
+
 #include "Rocket/sync.h"
 struct sync_device *rocket;
 
@@ -215,5 +218,9 @@ inline int buildCuboid(vertex* vert, vec3_t cp, vec3_t r, float hh, float vv) {
 
 extern void fade();
 extern void resetShadeEnv();
+
+extern void startPerfCounter(int idx);
+extern void stopPerfCounter(int idx);
+extern float readPerfCounter(int idx);
 
 #endif

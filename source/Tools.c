@@ -41,6 +41,20 @@ float lutZero(float input, float ignored) {
     return(0.0);
 }
 
+static TickCounter perfCounters[4];
+static int perfCounterInitialized = 0;
+void startPerfCounter(int idx) {
+    osTickCounterStart(&perfCounters[idx]);
+}
+
+void stopPerfCounter(int idx) {
+    osTickCounterUpdate(&perfCounters[idx]);
+}
+
+float readPerfCounter(int idx) {
+    return osTickCounterRead(&perfCounters[idx]);
+}
+
 void resetShadeEnv() {
     C3D_LightEnvBind(0);
     
