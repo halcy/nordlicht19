@@ -308,14 +308,26 @@ inline vec3_t vertexInterp(float isolevel, vec3_t p1, vec3_t p2, float valp1, fl
     return(vec3add(p1, vec3mul(vec3sub(p2, p1), mu)));
 }
 
+// Same as above but also normals
+inline vec3_t vertexInterpWithNormal(float isolevel, vec3_t p1, vec3_t p2, float valp1, float valp2, vec3_t n1, vec3_t n2, vec3_t* normal_out) {    
+    if(valp1 == valp2) {
+        return(p1);
+    }
+
+    float mu = (isolevel - valp1) / (valp2 - valp1);
+    *normal_out = vec3add(n1, vec3mul(vec3sub(n2, n1), mu));
+    return(vec3add(p1, vec3mul(vec3sub(p2, p1), mu)));
+}
+
 // Given grid cell and base isolevel,
 // set the proper triangles and return how many were set.
 // (0 -> entirely in- or outside the isosurface)
 // Edge isolevels are linearily interpolated.
-uint32_t polygonise(vec3_t* corners, float* values, uint32_t isolevel, vertex* vertices) {
+uint32_t polygonise(vec3_t* corners, float* values, vec3_t* normals, uint32_t isolevel, vertex* vertices) {
     uint8_t i;
     uint8_t cubeindex;
     vec3_t vertlist[12];
+    vec3_t normlist[12];
 
     // Determine the index into the edge table which
     // tells us which vertices are inside of the surface
@@ -361,40 +373,40 @@ uint32_t polygonise(vec3_t* corners, float* values, uint32_t isolevel, vertex* v
     
     // Find the vertices where the surface intersects the cube
     if(edgeTable[cubeindex] & 1) {
-        vertlist[0] = vertexInterp(isolevel, corners[0], corners[1], values[0], values[1]);
+        vertlist[0] = vertexInterpWithNormal(isolevel, corners[0], corners[1], values[0], values[1], normals[0], normals[1], &normlist[0]);
     }
     if(edgeTable[cubeindex] & 2) {
-        vertlist[1] = vertexInterp(isolevel, corners[1], corners[2], values[1], values[2]);
+        vertlist[1] = vertexInterpWithNormal(isolevel, corners[1], corners[2], values[1], values[2], normals[1], normals[2], &normlist[1]);
     }        
     if(edgeTable[cubeindex] & 4) {
-        vertlist[2] = vertexInterp(isolevel, corners[2], corners[3], values[2], values[3]);
+        vertlist[2] = vertexInterpWithNormal(isolevel, corners[2], corners[3], values[2], values[3], normals[2], normals[3], &normlist[2]);
     }
     if(edgeTable[cubeindex] & 8) {
-        vertlist[3] = vertexInterp(isolevel, corners[3], corners[0], values[3], values[0]);
+        vertlist[3] = vertexInterpWithNormal(isolevel, corners[3], corners[0], values[3], values[0], normals[3], normals[0], &normlist[3]);
     }
     if(edgeTable[cubeindex] & 16) {
-        vertlist[4] = vertexInterp(isolevel, corners[4], corners[5], values[4], values[5]);
+        vertlist[4] = vertexInterpWithNormal(isolevel, corners[4], corners[5], values[4], values[5], normals[4], normals[5], &normlist[4]);
     }
     if(edgeTable[cubeindex] & 32) {
-        vertlist[5] = vertexInterp(isolevel, corners[5], corners[6], values[5], values[6]);
+        vertlist[5] = vertexInterpWithNormal(isolevel, corners[5], corners[6], values[5], values[6], normals[5], normals[6], &normlist[5]);
     }
     if(edgeTable[cubeindex] & 64) {
-        vertlist[6] = vertexInterp(isolevel, corners[6], corners[7], values[6], values[7]);
+        vertlist[6] = vertexInterpWithNormal(isolevel, corners[6], corners[7], values[6], values[7], normals[6], normals[7], &normlist[6]);
     }
     if(edgeTable[cubeindex] & 128) {
-        vertlist[7] = vertexInterp(isolevel, corners[7], corners[4], values[7], values[4]);
+        vertlist[7] = vertexInterpWithNormal(isolevel, corners[7], corners[4], values[7], values[4], normals[7], normals[4], &normlist[7]);
     }
     if(edgeTable[cubeindex] & 256) {
-        vertlist[8] = vertexInterp(isolevel, corners[0], corners[4], values[0], values[4]);
+        vertlist[8] = vertexInterpWithNormal(isolevel, corners[0], corners[4], values[0], values[4], normals[0], normals[4], &normlist[8]);
     }
     if(edgeTable[cubeindex] & 512) {
-        vertlist[9] = vertexInterp(isolevel, corners[1], corners[5], values[1], values[5]);
+        vertlist[9] = vertexInterpWithNormal(isolevel, corners[1], corners[5], values[1], values[5], normals[1], normals[5], &normlist[9]);
     }
     if(edgeTable[cubeindex] & 1024) {
-        vertlist[10] = vertexInterp(isolevel, corners[2], corners[6], values[2], values[6]);
+        vertlist[10] = vertexInterpWithNormal(isolevel, corners[2], corners[6], values[2], values[6], normals[2], normals[6], &normlist[10]);
     }
     if(edgeTable[cubeindex] & 2048) {
-        vertlist[11] = vertexInterp(isolevel, corners[3], corners[7], values[3], values[7]);
+        vertlist[11] = vertexInterpWithNormal(isolevel, corners[3], corners[7], values[3], values[7], normals[3], normals[7], &normlist[11]);
     }
 
     // Create the triangle
@@ -416,9 +428,25 @@ uint32_t polygonise(vec3_t* corners, float* values, uint32_t isolevel, vertex* v
             vertlist[triTable[16 * cubeindex + i + 2]].z
         );
         
-        setVert(vertices, a, vec2(a.x, a.y)); vertices++;
-        setVert(vertices, b, vec2(b.x, b.y)); vertices++;
-        setVert(vertices, c, vec2(c.x, c.y)); vertices++;
+        vec3_t an = vec3(
+            normlist[triTable[16 * cubeindex + i]].x,
+            normlist[triTable[16 * cubeindex + i]].y,
+            normlist[triTable[16 * cubeindex + i]].z
+        );
+        vec3_t bn = vec3(
+            normlist[triTable[16 * cubeindex + i + 1]].x,
+            normlist[triTable[16 * cubeindex + i + 1]].y,
+            normlist[triTable[16 * cubeindex + i+1]].z
+        );
+        vec3_t cn = vec3(
+            normlist[triTable[16 * cubeindex + i + 2]].x,
+            normlist[triTable[16 * cubeindex + i + 2]].y,
+            normlist[triTable[16 * cubeindex + i + 2]].z
+        );
+        
+        setVertNorm(vertices, a, vec2(a.x, a.y), an); vertices++;
+        setVertNorm(vertices, b, vec2(b.x, b.y), bn); vertices++;
+        setVertNorm(vertices, c, vec2(c.x, c.y), cn); vertices++;
         
         numVerts += 3;
     }

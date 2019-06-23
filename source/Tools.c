@@ -182,7 +182,6 @@ void fullscreenQuadGlitch(C3D_Tex texture, int parts, float time, float amount) 
     
     resetShadeEnv();
     
-    
     // Turn off depth test as well as write
     C3D_DepthTest(false, GPU_GEQUAL, GPU_WRITE_COLOR);
     

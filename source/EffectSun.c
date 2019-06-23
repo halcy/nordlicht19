@@ -19,6 +19,7 @@
 
 #define GRID_OFFSET (((float)GRID_SIZE * CELL_SIZE) / 2.0)
 #define COORDS(x, y, z) (vec3((x) * CELL_SIZE - GRID_OFFSET, (y) * CELL_SIZE - GRID_OFFSET, (z) * CELL_SIZE - GRID_OFFSET))
+#define GRID_INVERSE(a) ((int)((a + GRID_OFFSET) * (1.0 / CELL_SIZE)))
 
 #define CENT_DIFF(f, c, d, t) vec3(f(c.x - d, c.y, c.z, t) - f(c.x + d, c.y, c.z, t), f(c.x, c.y - d, c.z, t) - f(c.x, c.y + d, c.z, t), f(c.x, c.y, c.z - d, t) - f(c.x, c.y, c.z + d, t))
 
@@ -28,6 +29,7 @@ const struct sync_track* sync_debug;
 
 // Marching cubes related
 float* marchingCubesGrid;
+vec3_t* marchingCubesNormals;
 int metaballVertCount;
 
 // Shader / textures
@@ -47,7 +49,7 @@ static C3D_LightLut lutPhong;
 static const C3D_Material lightMaterial = {
     { 0.1f, 0.1f, 0.1f }, //ambient
     { 0.8f, 0.8f, 0.8f }, //diffuse
-    { 0.0f, 0.0f, 0.0f }, //specular0
+    { 0.5f, 0.4f, 0.2f }, //specular0
     { 0.0f, 0.0f, 0.0f }, //specular1
     { 0.0f, 0.0f, 0.0f }, //emission
 };
@@ -73,19 +75,13 @@ void effectSunInit() {
     // Allocate VBOs
     metaballVBO = (vertex*)linearAlloc(sizeof(vertex) * MAX_METABALL_VERTS);
     
-    // Set up drawing or do I have to do this every frame I forget
-    attrInfo = C3D_GetAttrInfo();
-    AttrInfo_Init(attrInfo);
-    AttrInfo_AddLoader(attrInfo, 0, GPU_FLOAT, 3); // v0 = position
-    AttrInfo_AddLoader(attrInfo, 1, GPU_FLOAT, 2); // v1 = texcoord
-    AttrInfo_AddLoader(attrInfo, 2, GPU_FLOAT, 3); // v2 = normal    
-    
     metaballBufInfo = C3D_GetBufInfo();
     BufInfo_Init(metaballBufInfo);
     BufInfo_Add(metaballBufInfo, (void*)metaballVBO, sizeof(vertex), 3, 0x210);
     
     // Allocate grid
     marchingCubesGrid = (float*)malloc(GRID_SIZE * GRID_SIZE * GRID_SIZE * sizeof(float));
+    marchingCubesNormals = (vec3_t*)malloc(GRID_SIZE * GRID_SIZE * GRID_SIZE * sizeof(vec3_t));
 }
 
 static inline float field_torus(float xx, float yy, float zz) {
@@ -98,8 +94,8 @@ static inline float field_torus(float xx, float yy, float zz) {
 }
 
 static inline float field_ball(float xx, float yy, float zz, float rad) {
-    xx += sin(yy * 40.0 + rad) * 0.05; // TODO 
-    zz += cos(yy * 40.0 + rad) * 0.05; // TODO 
+    xx += sin(yy * rad + rad) * 0.05; // TODO 
+    zz += cos(yy * rad + rad) * 0.05; // TODO 
     return sqrt(xx * xx + yy * yy + zz * zz) - 0.7;
 }
 
@@ -123,10 +119,27 @@ void effectSunUpdate(float row) {
         }
     }
     
+    // Set normals for grid (TODO excluding last layer - that okay?)
+    for(int x = 0; x < GRID_SIZE - 1; x++) {
+        for(int y = 0; y < GRID_SIZE - 1; y++) {
+            for(int z = 0; z < GRID_SIZE - 1; z++) {
+                vec3_t coords = COORDS(x, y, z);
+                float cent_val = marchingCubesGrid[CELL(x, y, z)];
+                vec3_t normal = vec3(
+                    marchingCubesGrid[CELL(x + 1, y, z)] - cent_val,
+                    marchingCubesGrid[CELL(x, y + 1, z)] - cent_val,
+                    marchingCubesGrid[CELL(x, y, z + 1)] - cent_val
+                );
+                marchingCubesNormals[CELL(x, y, z)] = vec3norm(normal);
+            }
+        }
+    }
+    
     // Create mesh
     metaballVertCount = 0;
     vec3_t corners[8];
     float values[8];
+    vec3_t normals[8];
     for(int x = 0; x < GRID_SIZE - 1; x++) {
         for(int y = 0; y < GRID_SIZE - 1; y++) {
             for(int z = 0; z < GRID_SIZE - 1; z++) {
@@ -155,20 +168,42 @@ void effectSunUpdate(float row) {
                 values[6] = marchingCubesGrid[CELL(xx, yy, z)];
                 values[7] = marchingCubesGrid[CELL(x, yy, z)];
                 
-                metaballVertCount += polygonise(corners, values, 0.0, &(metaballVBO[metaballVertCount]));
+                normals[0] = marchingCubesNormals[CELL(x, y, zz)];
+                normals[1] = marchingCubesNormals[CELL(xx, y, zz)];
+                normals[2] = marchingCubesNormals[CELL(xx, y, z)];
+                normals[3] = marchingCubesNormals[CELL(x, y, z)];
+                normals[4] = marchingCubesNormals[CELL(x, yy, zz)];
+                normals[5] = marchingCubesNormals[CELL(xx, yy, zz)];
+                normals[6] = marchingCubesNormals[CELL(xx, yy, z)];
+                normals[7] = marchingCubesNormals[CELL(x, yy, z)];
+                
+                metaballVertCount += polygonise(corners, values, normals, 0.0, &(metaballVBO[metaballVertCount]));
             }
         }
     }
     
     // Set normals
-    for(int i = 0; i < metaballVertCount; i++) {
-        vec3_t vertex_pos = vec3(metaballVBO[i].position[0], metaballVBO[i].position[1], metaballVBO[i].position[2]);
-        vec3_t normal = CENT_DIFF(field_ball, vertex_pos, 0.1, anim_t);
-        normal = vec3norm(normal);
-        metaballVBO[i].normal[0] = -normal.x;
-        metaballVBO[i].normal[1] = -normal.y;
-        metaballVBO[i].normal[2] = -normal.z;
-    }
+//     for(int i = 0; i < metaballVertCount; i++) {
+//         vec3_t vertex_pos = vec3(metaballVBO[i].position[0], metaballVBO[i].position[1], metaballVBO[i].position[2]);
+//         
+//         int grid_x = GRID_INVERSE(vertex_pos.x);
+//         int grid_y = GRID_INVERSE(vertex_pos.y);
+//         int grid_z = GRID_INVERSE(vertex_pos.z);
+//         float cent_val = marchingCubesGrid[CELL(grid_x, grid_y, grid_z)];
+//         vec3_t normal = vec3(
+//             cent_val - marchingCubesGrid[CELL(grid_x + 1, grid_y, grid_z)],
+//             cent_val - marchingCubesGrid[CELL(grid_x, grid_y + 1, grid_z)],
+//             cent_val - marchingCubesGrid[CELL(grid_x, grid_y, grid_z + 1)]
+//         );
+//         
+//         //vec3_t normal = CENT_DIFF(field_ball, vertex_pos, 0.1, anim_t);
+//         //vec3_t normal = vec3(1.0, 0.0, 0.0);
+//         normal = vec3norm(normal);
+//         
+//         metaballVBO[i].normal[0] = -normal.x;
+//         metaballVBO[i].normal[1] = -normal.y;
+//         metaballVBO[i].normal[2] = -normal.z;
+//     }
     
     printf("%d vertices, %f -> %f\n", metaballVertCount, marchingCubesGrid[0], marchingCubesGrid[7 + 7*7 + 7*7*7]);
 }
@@ -196,10 +231,20 @@ void effectSunRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRight
     
     // Set up for drawing
     resetShadeEnv();
-
-    // TODO turn culling on
+    C3D_BindProgram(&shaderProgram);
+    
+    attrInfo = C3D_GetAttrInfo();
+    AttrInfo_Init(attrInfo);
+    AttrInfo_AddLoader(attrInfo, 0, GPU_FLOAT, 3); // v0 = position
+    AttrInfo_AddLoader(attrInfo, 1, GPU_FLOAT, 2); // v1 = texcoord
+    AttrInfo_AddLoader(attrInfo, 2, GPU_FLOAT, 3); // v2 = normal        
+    
+    // Textures
+    C3D_TexBind(0, 0);    
+    
+    // GPU state
     C3D_DepthTest(true, GPU_GEQUAL, GPU_WRITE_ALL);
-    C3D_CullFace(GPU_CULL_NONE);
+    C3D_CullFace(GPU_CULL_BACK_CCW);
         
     C3D_LightEnvInit(&lightEnv);
     C3D_LightEnvBind(&lightEnv);
@@ -230,7 +275,6 @@ void effectSunRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRight
     // Left eye
     C3D_FrameDrawOn(targetLeft);
     effectSunDraw(-iod);
-    fade();
     
     if(iod > 0.0) {
         // Right eye
@@ -238,6 +282,10 @@ void effectSunRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRight
         effectSunDraw(iod);
         fade();
     }
+    
+    // Fade left eye here to avoid double draw setup
+    C3D_FrameDrawOn(targetLeft);
+    fade();
     
     // Ready to flip
     C3D_FrameEnd(0);
@@ -247,6 +295,7 @@ void effectSunExit() {
     // Free allocated memory
     linearFree(metaballVBO);
     free(marchingCubesGrid);
+    free(marchingCubesNormals);
     
     // Free the shader shaderProgram
     shaderProgramFree(&shaderProgram);
