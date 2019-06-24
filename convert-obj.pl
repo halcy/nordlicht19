@@ -3,7 +3,7 @@
 use warnings;
 use strict;
 
-my $scale = 0.4;
+my $scale = 0.6;
 my $offset = 0;
 my $suffix = $ARGV[1];
 
@@ -115,6 +115,10 @@ print $out_file_h "#include \"Rasterize.h\"\n\n";
 print $out_file_h "#define numVertices$suffix " . scalar @vertices . "\n";
 print $out_file_h "#define numNormals$suffix " . scalar @normalsarr . "\n";
 print $out_file_h "#define numFaces$suffix " . scalar @faces . "\n\n";
+print $out_file_h "extern const init_vertex_t vertices" . $suffix . "[];\n";
+print $out_file_h "extern const init_vertex_t normals" . $suffix . "[];\n";
+print $out_file_h "extern const index_triangle_t faces" . $suffix . "[];\n";
+print $out_file_h "extern const vec2_t texcoords" . $suffix . "[];\n\n";
 print $out_file_h "#endif\n\n";
 
 print $out_file_c "#include \"Rasterize.h\"\n\n";

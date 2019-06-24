@@ -5,6 +5,7 @@
 #include <citro3d.h>
 #include <string.h>
 #include <stdio.h>
+#include <tex3ds.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,6 +29,8 @@
 #include "Perlin.h"
 #include "VectorLibrary/Vector.h"
 #include "VectorLibrary/Matrix.h"
+
+#include "Rasterize.h"
 
 #define min(a,b) (((a)<(b))?(a):(b))
 #define max(a,b) (((a)>(b))?(a):(b))
@@ -216,6 +219,8 @@ inline int buildCuboid(vertex* vert, vec3_t cp, vec3_t r, float hh, float vv) {
         return(6 * 6);
 }
 
+int32_t loadObject(int32_t numFaces, const index_triangle_t* faces, const init_vertex_t* vertices, const init_vertex_t* normals, const vec2_t* texcoords, vertex* vbo);
+
 extern void fade();
 extern void resetShadeEnv();
 
@@ -223,4 +228,5 @@ extern void startPerfCounter(int idx);
 extern void stopPerfCounter(int idx);
 extern float readPerfCounter(int idx);
 
+extern bool loadTex3DS(C3D_Tex* tex, C3D_TexCube* cube, const char* path);
 #endif

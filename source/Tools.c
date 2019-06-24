@@ -247,6 +247,42 @@ int32_t divf32(int32_t a, int32_t b) {
         return (int32_t)(result);
 }
 
+int32_t loadObject(int32_t numFaces, const index_triangle_t* faces, const init_vertex_t* vertices, const init_vertex_t* normals, const vec2_t* texcoords, vertex* vbo) {
+    for(int f = 0; f < numFaces; f++) {
+        for(int v = 0; v < 3; v++) {
+            // Set up vertex
+            uint32_t vertexIndex = faces[f].v[v];
+            vbo[f * 3 + v].position[0] = vertices[vertexIndex].x;
+            vbo[f * 3 + v].position[1] = vertices[vertexIndex].y;
+            vbo[f * 3 + v].position[2] = vertices[vertexIndex].z;
+            
+            // Set normal to face normal
+            vbo[f * 3 + v].normal[0] = normals[faces[f].v[3]].x;
+            vbo[f * 3 + v].normal[1] = normals[faces[f].v[3]].y;
+            vbo[f * 3 + v].normal[2] = normals[faces[f].v[3]].z;
+            
+            vbo[f * 3 + v].texcoord[0] = 0.0; // TODO
+            vbo[f * 3 + v].texcoord[1] = 0.0;
+        }
+    }
+    return numFaces * 3;
+}
+
+// Helper function for loading a texture from a t3x file (from citro3d examples)
+bool loadTex3DS(C3D_Tex* tex, C3D_TexCube* cube, const char* path) {
+    FILE* f = fopen(path, "rb");
+    if (!f)
+        return false;
+
+    Tex3DS_Texture t3x = Tex3DS_TextureImportStdio(f, tex, cube, false);
+    fclose(f);
+    if (!t3x)
+        return false;
+
+    // Delete the t3x object since we don't need it
+    Tex3DS_TextureFree(t3x);
+    return true;
+}
 
 extern C3D_Tex fade_tex;
 extern float fadeVal;
