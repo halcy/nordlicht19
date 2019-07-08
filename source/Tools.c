@@ -261,8 +261,29 @@ int32_t loadObject(int32_t numFaces, const index_triangle_t* faces, const init_v
             vbo[f * 3 + v].normal[1] = normals[faces[f].v[3]].y;
             vbo[f * 3 + v].normal[2] = normals[faces[f].v[3]].z;
             
-            vbo[f * 3 + v].texcoord[0] = 0.0; // TODO
-            vbo[f * 3 + v].texcoord[1] = 0.0;
+            vbo[f * 3 + v].texcoord[0] = texcoords[vertexIndex].x;
+            vbo[f * 3 + v].texcoord[1] = texcoords[vertexIndex].y; 
+        }
+    }
+    return numFaces * 3;
+}
+
+int32_t loadObject2(int32_t numFaces, const index_trianglepv_t* faces, const init_vertex_t* vertices, const init_vertex_t* normals, const vec2_t* texcoords, vertex* vbo) {
+    for(int f = 0; f < numFaces; f++) {
+        for(int v = 0; v < 3; v++) {
+            // Set up vertex
+            uint32_t vertexIndex = faces[f].v[v];
+            vbo[f * 3 + v].position[0] = vertices[vertexIndex].x;
+            vbo[f * 3 + v].position[1] = vertices[vertexIndex].y;
+            vbo[f * 3 + v].position[2] = vertices[vertexIndex].z;
+            
+            // Set normal to face normal
+            vbo[f * 3 + v].normal[0] = normals[faces[f].v[3]].x;
+            vbo[f * 3 + v].normal[1] = normals[faces[f].v[3]].y;
+            vbo[f * 3 + v].normal[2] = normals[faces[f].v[3]].z;
+            
+            vbo[f * 3 + v].texcoord[0] = texcoords[faces[f].v[v+4]].x;
+            vbo[f * 3 + v].texcoord[1] = texcoords[faces[f].v[v+4]].y;
         }
     }
     return numFaces * 3;
@@ -271,14 +292,18 @@ int32_t loadObject(int32_t numFaces, const index_triangle_t* faces, const init_v
 // Helper function for loading a texture from a t3x file (from citro3d examples)
 bool loadTex3DS(C3D_Tex* tex, C3D_TexCube* cube, const char* path) {
     FILE* f = fopen(path, "rb");
-    if (!f)
+    if (!f) {
+        printf("Texture file not found: %s\n", path);
         return false;
-
+    }
+    
     Tex3DS_Texture t3x = Tex3DS_TextureImportStdio(f, tex, cube, false);
-    fclose(f);
-    if (!t3x)
-        return false;
-
+    fclose(f); 
+    if (!t3x) {
+        printf("Texture load failure on %s\n", path);
+        return false; 
+    }
+    
     // Delete the t3x object since we don't need it
     Tex3DS_TextureFree(t3x);
     return true;

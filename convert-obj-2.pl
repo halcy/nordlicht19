@@ -42,15 +42,9 @@ while(<$in_file>) {
     }
     
     # Assume normals are per face, no whatever calculate normals later
-    if( $_ =~ /f ([0-9]+)\/([0-9]*)\/([0-9]+) ([0-9]+)\/([0-9]*)\/([0-9]+) ([0-9]+)\/[0-9]*\/([0-9]+)/ ) {
-        push @faces, [$1, $4, $7, $3];
-        
-        # Likely reasonable assumption: Texcoords are unique per vertex (?????)
-        if( length($2) != 0 ) {
-            $vert_texcoords{$1} = $2;
-            $vert_texcoords{$4} = $5;
-            $vert_texcoords{$7} = $8;
-        }
+    if( $_ =~ /f ([0-9]+)\/([0-9]*)\/([0-9]+) ([0-9]+)\/([0-9]*)\/([0-9]+) ([0-9]+)\/([0-9]*)\/([0-9]+)/ ) {
+        push @faces, [$1, $4, $7, $3, $2, $5, $8];
+        print "$1, $4, $7, $3, $2, $5, $8"
     }
 
     if( $_ =~ /f ([0-9]+) ([0-9]+) ([0-9]+)/ ) {
@@ -66,7 +60,6 @@ while(<$in_file>) {
 # 		push @normals, [$1, $2, $3];
 # 	}
 }
-
 my %normals = ();
 my @normalsarr = ();
 my $normalidx = 1;
@@ -117,7 +110,7 @@ print $out_file_h "#define numNormals$suffix " . scalar @normalsarr . "\n";
 print $out_file_h "#define numFaces$suffix " . scalar @faces . "\n\n";
 print $out_file_h "extern const init_vertex_t vertices" . $suffix . "[];\n";
 print $out_file_h "extern const init_vertex_t normals" . $suffix . "[];\n";
-print $out_file_h "extern const index_triangle_t faces" . $suffix . "[];\n";
+print $out_file_h "extern const index_trianglepv_t faces" . $suffix . "[];\n";
 print $out_file_h "extern const vec2_t texcoords" . $suffix . "[];\n\n";
 print $out_file_h "#endif\n\n";
 
@@ -141,20 +134,22 @@ foreach(@normalsarr) {
 }
 print $out_file_c "};\n\n";
 
-print $out_file_c "const index_triangle_t faces" . $suffix . "[] = {\n";
+print $out_file_c "const index_trianglepv_t faces" . $suffix . "[] = {\n";
 foreach(@faces) {
     my @face = @{$_};
     print $out_file_c "\t{" . ($face[0] - 1 + $offset) . ", " .
                 ($face[1] - 1 + $offset) . ", " .
                 ($face[2] - 1 + $offset) . ", " .
-                ($face[3] - 1 + $offset) . "},\n";
+                ($face[3] - 1 + $offset) . ", " .
+                ($face[4] - 1 + $offset) . ", " .
+                ($face[5] - 1 + $offset) . ", " .
+                ($face[6] - 1 + $offset) . "},\n";
 }
 print $out_file_c "};\n";
 
 print $out_file_c "const vec2_t texcoords" . $suffix . "[] = {\n";
-for(my $i = 0; $i < scalar @vertices; $i++) {
-    my $texcoord_idx = $vert_texcoords{$i + 1} - 1;
-    my @texcoord = @{$texcoords[$texcoord_idx]};
+foreach(@texcoords) {
+    my @texcoord = @{$_};
     print $out_file_c "\t{ F(" . $texcoord[0] . "), F(" . $texcoord[1] . ") }, \n";
 }
-print $out_file_c "};\n";
+print $out_file_c "};\n\n";

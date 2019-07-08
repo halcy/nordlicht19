@@ -220,6 +220,7 @@ inline int buildCuboid(vertex* vert, vec3_t cp, vec3_t r, float hh, float vv) {
 }
 
 int32_t loadObject(int32_t numFaces, const index_triangle_t* faces, const init_vertex_t* vertices, const init_vertex_t* normals, const vec2_t* texcoords, vertex* vbo);
+int32_t loadObject2(int32_t numFaces, const index_trianglepv_t* faces, const init_vertex_t* vertices, const init_vertex_t* normals, const vec2_t* texcoords, vertex* vbo);
 
 extern void fade();
 extern void resetShadeEnv();

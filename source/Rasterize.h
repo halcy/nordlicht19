@@ -10,6 +10,10 @@ typedef struct {
     int32_t v[4];
 } index_triangle_t;
 
+typedef struct {
+    int32_t v[7];
+} index_trianglepv_t;
+
 typedef vec3_t init_vertex_t;
 
 #define F(x) (x)

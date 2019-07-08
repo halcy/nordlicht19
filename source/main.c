@@ -105,9 +105,9 @@ int main() {
     effect_list[0].render = effectSunRender;
     effect_list[0].exit = effectSunExit;
     
-    effect_list[1].init = effectSunInit;
-    effect_list[1].render = effectSunRender;
-    effect_list[1].exit = effectSunExit;
+    effect_list[1].init = effectSun2Init;
+    effect_list[1].render = effectSun2Render;
+    effect_list[1].exit = effectSun2Exit;
     
     effect_list[2].init = effectSunInit;
     effect_list[2].render = effectSunRender;
