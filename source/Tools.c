@@ -268,7 +268,7 @@ int32_t loadObject(int32_t numFaces, const index_triangle_t* faces, const init_v
     return numFaces * 3;
 }
 
-int32_t loadObject2(int32_t numFaces, const index_trianglepv_t* faces, const init_vertex_t* vertices, const init_vertex_t* normals, const vec2_t* texcoords, vertex* vbo) {
+int32_t loadObjectRigged(int32_t numFaces, const index_triangle_t* faces, const init_vertex_t* vertices, const init_vertex_t* normals, const vec2_t* texcoords, vertex* vbo) {
     for(int f = 0; f < numFaces; f++) {
         for(int v = 0; v < 3; v++) {
             // Set up vertex
@@ -282,8 +282,35 @@ int32_t loadObject2(int32_t numFaces, const index_trianglepv_t* faces, const ini
             vbo[f * 3 + v].normal[1] = normals[faces[f].v[3]].y;
             vbo[f * 3 + v].normal[2] = normals[faces[f].v[3]].z;
             
-            vbo[f * 3 + v].texcoord[0] = texcoords[faces[f].v[v+4]].x;
-            vbo[f * 3 + v].texcoord[1] = texcoords[faces[f].v[v+4]].y;
+            vbo[f * 3 + v].texcoord[0] = texcoords[vertexIndex].x;
+            vbo[f * 3 + v].texcoord[1] = texcoords[vertexIndex].y; 
+        }
+    }
+    return numFaces * 3;
+}
+
+int32_t loadObject2(int32_t numFaces, const index_trianglepv_t* faces, const init_vertex_t* vertices, const init_vertex_t* normals, const vec2_t* texcoords, vertex2* vbo) {
+    for(int f = 0; f < numFaces; f++) {
+        for(int v = 0; v < 3; v++) {
+            // Set up vertex
+            uint32_t vertexIndex = faces[f].v[v];
+            vbo[f * 3 + v].position[0] = vertices[vertexIndex].x;
+            vbo[f * 3 + v].position[1] = vertices[vertexIndex].y;
+            vbo[f * 3 + v].position[2] = vertices[vertexIndex].z;
+            
+            // Set normals to vertex normals
+            vbo[f * 3 + v].normal[0] = normals[faces[f].v[v+3]].x;
+            vbo[f * 3 + v].normal[1] = normals[faces[f].v[v+3]].y;
+            vbo[f * 3 + v].normal[2] = normals[faces[f].v[v+3]].z;
+            
+            // Set tangents to vertex tangents
+            vbo[f * 3 + v].tangent[0] = normals[faces[f].v[v+3]].x;
+            vbo[f * 3 + v].tangent[1] = normals[faces[f].v[v+3]].y;
+            vbo[f * 3 + v].tangent[2] = normals[faces[f].v[v+3]].z;            
+            
+            // Set texcoords
+            vbo[f * 3 + v].texcoord[0] = texcoords[faces[f].v[v+6]].x;
+            vbo[f * 3 + v].texcoord[1] = texcoords[faces[f].v[v+6]].y;
         }
     }
     return numFaces * 3;

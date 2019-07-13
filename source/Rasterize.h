@@ -11,7 +11,7 @@ typedef struct {
 } index_triangle_t;
 
 typedef struct {
-    int32_t v[7];
+    int32_t v[9];
 } index_trianglepv_t;
 
 typedef vec3_t init_vertex_t;

@@ -77,6 +77,8 @@ extern int32_t mulf32(int32_t a, int32_t b);
 extern int32_t divf32(int32_t a, int32_t b);
 
 typedef struct { float position[3]; float texcoord[2]; float normal[3]; } vertex;
+typedef struct { float position[3]; float texcoord[2]; float normal[3]; float tangent[3]; } vertex2;
+typedef struct { float position[3]; float bones[4]; float bone_weights[4]; float normal[3]; float texcoord[2]; } vertex_rigged;
 
 inline void setVert(vertex* vert, vec3_t p, vec2_t t) {
     vert->position[0] = p.x;
@@ -87,6 +89,19 @@ inline void setVert(vertex* vert, vec3_t p, vec2_t t) {
 }
 
 inline void setVertNorm(vertex* vert, vec3_t p, vec2_t t, vec3_t n) {
+    vert->position[0] = p.x;
+    vert->position[1] = p.y;
+    vert->position[2] = p.z;
+    
+    vert->normal[0] = n.x;
+    vert->normal[1] = n.y;
+    vert->normal[2] = n.z;
+    
+    vert->texcoord[0] = t.x;
+    vert->texcoord[1] = t.y;
+}
+
+inline void setVertNorm2(vertex2* vert, vec3_t p, vec2_t t, vec3_t n) {
     vert->position[0] = p.x;
     vert->position[1] = p.y;
     vert->position[2] = p.z;
@@ -120,6 +135,17 @@ inline int buildQuadNormal(vertex* vert, vec3_t a, vec3_t b, vec3_t c, vec3_t d,
         setVertNorm(vert, a, ta, n); vert++;
         setVertNorm(vert, c, tc, n); vert++;
         setVertNorm(vert, d, td, n); vert++;
+        
+        return 6;
+}
+
+inline int buildQuadNormal2(vertex2* vert, vec3_t a, vec3_t b, vec3_t c, vec3_t d, vec2_t ta, vec2_t tb, vec2_t tc, vec2_t td, vec3_t n) {
+        setVertNorm2(vert, a, ta, n); vert++;
+        setVertNorm2(vert, b, tb, n); vert++;
+        setVertNorm2(vert, c, tc, n); vert++;        
+        setVertNorm2(vert, a, ta, n); vert++;
+        setVertNorm2(vert, c, tc, n); vert++;
+        setVertNorm2(vert, d, td, n); vert++;
         
         return 6;
 }
@@ -182,6 +208,43 @@ inline int buildCube(vertex* vert, vec3_t cp, float r, float hh, float vv) {
         return(6 * 6);
 }
 
+inline int buildCube2(vertex2* vert, vec3_t cp, float r, float hh, float vv) {
+        // Texcoords
+        vec2_t t1 = vec2(hh + 0.0, vv + 0.0);
+        vec2_t t2 = vec2(hh + 0.0, vv + 0.5);
+        vec2_t t3 = vec2(hh + 0.5, vv + 0.5);
+        vec2_t t4 = vec2(hh + 0.5, vv + 0.0);
+        
+        // Corners
+        vec3_t a = vec3add(cp, vec3(-r, -r, -r));
+        vec3_t b = vec3add(cp, vec3( r, -r, -r));
+        vec3_t c = vec3add(cp, vec3( r, -r,  r));
+        vec3_t d = vec3add(cp, vec3(-r, -r,  r));
+        vec3_t e = vec3add(cp, vec3(-r,  r, -r));
+        vec3_t f = vec3add(cp, vec3( r,  r, -r));
+        vec3_t g = vec3add(cp, vec3( r,  r,  r));
+        vec3_t h = vec3add(cp, vec3(-r,  r,  r));
+        
+        // Normals
+        vec3_t n1 = vec3( 1,  0,  0);
+        vec3_t n2 = vec3(-1,  0,  0);
+        vec3_t n3 = vec3( 0,  1,  0);
+        vec3_t n4 = vec3( 0, -1,  0);
+        vec3_t n5 = vec3( 0,  0,  1);
+        vec3_t n6 = vec3( 0,  0, -1);
+        
+        // Faces
+        vert += buildQuadNormal2(vert, a, b, c, d, t1, t2, t3, t4, n5);
+        vert += buildQuadNormal2(vert, d, c, g, h, t1, t2, t3, t4, n4);
+        vert += buildQuadNormal2(vert, h, g, f, e, t1, t2, t3, t4, n6);
+        vert += buildQuadNormal2(vert, e, f, b, a, t1, t2, t3, t4, n3);
+        vert += buildQuadNormal2(vert, b, f, g, c, t1, t2, t3, t4, n1);
+        vert += buildQuadNormal2(vert, e, a, d, h, t1, t2, t3, t4, n2);
+        
+        // Done
+        return(6 * 6);
+}
+
 inline int buildCuboid(vertex* vert, vec3_t cp, vec3_t r, float hh, float vv) {
         // Texcoords
         vec2_t t1 = vec2(hh + 0.0, vv + 0.0);
@@ -220,7 +283,7 @@ inline int buildCuboid(vertex* vert, vec3_t cp, vec3_t r, float hh, float vv) {
 }
 
 int32_t loadObject(int32_t numFaces, const index_triangle_t* faces, const init_vertex_t* vertices, const init_vertex_t* normals, const vec2_t* texcoords, vertex* vbo);
-int32_t loadObject2(int32_t numFaces, const index_trianglepv_t* faces, const init_vertex_t* vertices, const init_vertex_t* normals, const vec2_t* texcoords, vertex* vbo);
+int32_t loadObject2(int32_t numFaces, const index_trianglepv_t* faces, const init_vertex_t* vertices, const init_vertex_t* normals, const vec2_t* texcoords, vertex2* vbo);
 
 extern void fade();
 extern void resetShadeEnv();

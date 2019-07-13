@@ -4,7 +4,7 @@
 #include "Rasterize.h"
 
 #define numVerticesSpaceStation 5205
-#define numNormalsSpaceStation 10400
+#define numNormalsSpaceStation 5187
 #define numFacesSpaceStation 10400
 
 extern const init_vertex_t verticesSpaceStation[];
