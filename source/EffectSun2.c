@@ -13,6 +13,10 @@
 #include "ModelSpaceStation.h"
 #include "ModelSun.h"
 
+#include "stars_bin.h"
+#include "tex_spacestation_color_bin.h"
+#include "tex_spacestation_normals_bin.h"
+
 // Shader / textures
 static C3D_AttrInfo* attrInfo;
 
@@ -62,12 +66,14 @@ static C3D_BufInfo* bufInfo;
 const struct sync_track* sync_zoom;
 const struct sync_track* sync_rotate;
 const struct sync_track* sync_noise;
+const struct sync_track* sync_fov;
 
 void effectSun2Init() {
     // initialize everything here
     sync_zoom = sync_get_track(rocket, "sun2.zoom");
     sync_rotate = sync_get_track(rocket, "sun2.rotate");
     sync_noise = sync_get_track(rocket, "sun2.noise");
+    sync_fov = sync_get_track(rocket, "sun2.fov");
     
     // Set up "normal 3D rendering" shader and get uniform locations
     vshader_skybox_dvlb = DVLB_ParseFile((u32*)vshader_skybox_shbin, vshader_skybox_shbin_size);
@@ -100,16 +106,16 @@ void effectSun2Init() {
     skyboxVertCount = buildCube2(&vbo[(numFacesSpaceStation + numFacesSun) * 3], vec3(0, 0, 0), 29500.0, 0.0, 0.0);
     
     // Load texture for the skybox
-    loadTex3DS(&skybox_tex, &skybox_cube, "romfs:/stars.t3x");
+    loadTex3DSMem(&skybox_tex, &skybox_cube, stars_bin, stars_bin_size);
     C3D_TexSetFilter(&skybox_tex, GPU_LINEAR, GPU_LINEAR);
     C3D_TexSetWrap(&skybox_tex, GPU_CLAMP_TO_EDGE, GPU_CLAMP_TO_EDGE);       
     
     // Load textures for station
-    loadTex3DS(&station_tex_col, NULL, "romfs:/tex_spacestation_color.t3x");
+    loadTex3DSMem(&station_tex_col, NULL, tex_spacestation_color_bin, tex_spacestation_color_bin_size);
     C3D_TexSetFilter(&station_tex_col, GPU_LINEAR, GPU_NEAREST);
     C3D_TexSetWrap(&station_tex_col, GPU_CLAMP_TO_EDGE, GPU_CLAMP_TO_EDGE);    
     
-    loadTex3DS(&station_tex_norm, NULL, "romfs:/tex_spacestation_normals.t3x");
+    loadTex3DSMem(&station_tex_norm, NULL, tex_spacestation_normals_bin, tex_spacestation_normals_bin_size);
     C3D_TexSetFilter(&station_tex_norm, GPU_LINEAR, GPU_NEAREST);
     C3D_TexSetWrap(&station_tex_norm, GPU_CLAMP_TO_EDGE, GPU_CLAMP_TO_EDGE);
     
@@ -166,10 +172,11 @@ void effectSun2Draw(float iod, float row) {
     float sync_zoom_val = sync_get_val(sync_zoom, row);
     float sync_rotate_val = sync_get_val(sync_rotate, row);
     float sync_noise_val = sync_get_val(sync_noise, row);
+    float sync_fov_val = sync_get_val(sync_fov, row);
 
     // Projection matrix
     C3D_Mtx projection;
-    Mtx_PerspStereoTilt(&projection, 65.0f * M_PI / 180.0f, 400.0f / 240.0f, 0.2f, 70000.0f, iod, 2.0f, false);
+    Mtx_PerspStereoTilt(&projection, (65.0f + sync_fov_val) * M_PI / 180.0f, 400.0f / 240.0f, 0.2f, 70000.0f, iod, 2.0f, false);
     
     // Modelview matrix
     C3D_Mtx modelview;

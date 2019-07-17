@@ -26,6 +26,7 @@
 #define CENT_DIFF(f, c, d, t) vec3(f(c.x - d, c.y, c.z, t) - f(c.x + d, c.y, c.z, t), f(c.x, c.y - d, c.z, t) - f(c.x, c.y + d, c.z, t), f(c.x, c.y, c.z - d, t) - f(c.x, c.y, c.z + d, t))
 
 #include "SpaceRoom.h"
+#include "stars_bin.h"
 
 // Sync
 const struct sync_track* sync_anim_t;
@@ -33,6 +34,7 @@ const struct sync_track* sync_anim_r;
 const struct sync_track* sync_anim_w;
 const struct sync_track* sync_anim_f;
 const struct sync_track* sync_rotate;
+const struct sync_track* sync_bright;
 const struct sync_track* sync_build;
 
 // Marching cubes related
@@ -63,6 +65,8 @@ static C3D_Tex skybox_tex;
 static C3D_TexCube skybox_cube;
 int skyboxVertCount;
 
+static C3D_Tex room_tex;
+
 static C3D_AttrInfo* attrInfo;
 
 // Lighting
@@ -80,9 +84,9 @@ static const C3D_Material lightMaterial = {
 };
 
 static const C3D_Material lightMaterialDark = {
-    { 0.1f, 0.1f, 0.1f }, //ambient
+    { 0.3f, 0.3f, 0.3f }, //ambient
     { 0.5f, 0.5f, 0.5f }, //diffuse
-    { 0.5f, 0.4f, 0.2f }, //specular0
+    { 0.5f, 0.4f, 0.4f }, //specular0
     { 0.0f, 0.0f, 0.0f }, //specular1
     { 0.0f, 0.0f, 0.0f }, //emission
 };
@@ -98,6 +102,7 @@ void effectSunInit() {
     sync_anim_w = sync_get_track(rocket, "metaroom.anim_w");
     sync_anim_f = sync_get_track(rocket, "metaroom.field");
     sync_rotate = sync_get_track(rocket, "metaroom.cam_rot");
+    sync_bright = sync_get_track(rocket, "metaroom.bright");
     sync_build  = sync_get_track(rocket, "metaroom.build");
     
     // Set up "normal 3D rendering" shader and get uniform locations
@@ -132,13 +137,18 @@ void effectSunInit() {
     marchingCubesMarkNb = 0;
     
     // Load statics
-    loadObject(numFacesSpaceRoom, facesSpaceRoom, verticesSpaceRoom, normalsSpaceRoom, texcoordsSpaceRoom, &metaballVBO[MAX_METABALL_VERTS]);
+    loadObject2to1(numFacesSpaceRoom, facesSpaceRoom, verticesSpaceRoom, normalsSpaceRoom, texcoordsSpaceRoom, &metaballVBO[MAX_METABALL_VERTS]);
     skyboxVertCount = buildCube(&metaballVBO[MAX_METABALL_VERTS + numFacesSpaceRoom * 3], vec3(0, 0, 0), 100.0, 0.0, 0.0);
     
-    // Load texture for the skybox to tex unit 0
-    loadTex3DS(&skybox_tex, &skybox_cube, "romfs:/stars.t3x");
+    // Load texture for the skybox
+    loadTex3DSMem(&skybox_tex, &skybox_cube, stars_bin, stars_bin_size);
     C3D_TexSetFilter(&skybox_tex, GPU_LINEAR, GPU_LINEAR);
     C3D_TexSetWrap(&skybox_tex, GPU_CLAMP_TO_EDGE, GPU_CLAMP_TO_EDGE);    
+    
+    // And texture for the room
+    loadTex3DS(&room_tex, NULL, "romfs:/room.t3x");
+    C3D_TexSetFilter(&room_tex, GPU_LINEAR, GPU_LINEAR);
+    C3D_TexSetWrap(&room_tex, GPU_CLAMP_TO_EDGE, GPU_CLAMP_TO_EDGE);    
 }
 
 float field_torus(float xx, float yy, float zz) {
@@ -482,11 +492,26 @@ void effectSunDraw(float iod, float row) {
     //printf("Died after first drawcall");
     
     // Set up for statics
+    float brightVal = sync_get_val(sync_bright, row);
+    C3D_TexBind(0, &room_tex);
+    C3D_LightColor(&light, 1.05 * brightVal, 0.7 * brightVal, 1.05 * brightVal);
+    
+    env = C3D_GetTexEnv(0);
+    C3D_TexEnvInit(env);
+    C3D_TexEnvSrc(env, C3D_Both, GPU_TEXTURE0, GPU_FRAGMENT_PRIMARY_COLOR, 0);
+    C3D_TexEnvFunc(env, C3D_RGB, GPU_MODULATE);
+    
+    env = C3D_GetTexEnv(1);
+    C3D_TexEnvInit(env);
+    C3D_TexEnvSrc(env, C3D_Both, GPU_PREVIOUS, GPU_FRAGMENT_SECONDARY_COLOR, 0);
+    C3D_TexEnvFunc(env, C3D_RGB, GPU_ADD);
+    
     C3D_CullFace(GPU_CULL_BACK_CCW);
     C3D_LightEnvMaterial(&lightEnv, &lightMaterialDark);
     C3D_DrawArrays(GPU_TRIANGLES, MAX_METABALL_VERTS, numFacesSpaceRoom * 3);
     
      // GPU state for additive blend
+    C3D_LightColor(&light, 1.0, 1.0, 1.0);
     C3D_CullFace(GPU_CULL_NONE);
     C3D_DepthTest(false, GPU_GEQUAL, GPU_WRITE_COLOR);
     C3D_AlphaBlend(GPU_BLEND_ADD, GPU_BLEND_ADD, GPU_ONE, GPU_ONE, GPU_ONE, GPU_ONE);
@@ -543,10 +568,12 @@ void effectSunRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRight
         // Right eye
         C3D_FrameDrawOn(targetRight);
         effectSunDraw(iod, row);
+        C3D_AlphaBlend(GPU_BLEND_ADD, GPU_BLEND_ADD, GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA);    
         fade();
     }
     
     // Fade left eye here to avoid double draw setup
+    C3D_AlphaBlend(GPU_BLEND_ADD, GPU_BLEND_ADD, GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA);    
     C3D_FrameDrawOn(targetLeft);
     fade();
     
@@ -564,6 +591,7 @@ void effectSunRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRight
 void effectSunExit() {
     // Free textures
     C3D_TexDelete(&skybox_tex);
+    C3D_TexDelete(&room_tex);
     
     // Free allocated memory
     linearFree(metaballVBO);

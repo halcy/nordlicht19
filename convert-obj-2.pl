@@ -3,7 +3,7 @@
 use warnings;
 use strict;
 
-my $scale = 0.1;
+my $scale = 0.6;
 my $offset = 0;
 my $suffix = $ARGV[1];
 

@@ -3,7 +3,7 @@
 use warnings;
 use strict;
 
-my $scale = 0.1;
+my $scale = 0.6;
 my $offset = 0;
 my $suffix = $ARGV[1];
 
@@ -45,7 +45,7 @@ while(<$in_file>) {
     if( $_ =~ /f ([0-9]+)\/([0-9]*)\/([0-9]+) ([0-9]+)\/([0-9]*)\/([0-9]+) ([0-9]+)\/[0-9]*\/([0-9]+)/ ) {
         push @faces, [$1, $4, $7, $3];
         
-        # Likely reasonable assumption: Texcoords are unique per vertex (?????)
+        # Likely reasonable assumption: Texcoords are unique per vertex (WRONG)
         if( length($2) != 0 ) {
             $vert_texcoords{$1} = $2;
             $vert_texcoords{$4} = $5;

@@ -68,6 +68,8 @@ extern float lutAbsInverseLinear(float input, float offset);
 extern float lutOne(float input, float offset);
 extern float lutZero(float input, float offset);
 extern float lutPosPower(float input, float expo);
+extern float lutSquaredDist(float input, float offset, float scale);
+extern float lutDist(float input, float offset, float scale);
 
 extern void fullscreenQuad(C3D_Tex texture, float iod, float iodmult);
 extern void fullscreenQuadFlat(C3D_Tex texture);
@@ -86,6 +88,21 @@ inline void setVert(vertex* vert, vec3_t p, vec2_t t) {
     vert->position[2] = p.z;
     vert->texcoord[0] = t.x;
     vert->texcoord[1] = t.y;
+}
+
+inline void setVertRigged(vertex_rigged* vert, vec3_t p, vec2_t t, int bone) {
+    vert->position[0] = p.x;
+    vert->position[1] = p.y;
+    vert->position[2] = p.z;
+    vert->texcoord[0] = t.x;
+    vert->texcoord[1] = t.y;
+    
+    vert->bones[0] = bone * 3.0;
+    vert->bone_weights[0] = 1.0;
+    for(int i = 1; i < 4; i++) {
+        vert->bones[i] = 0;
+        vert->bone_weights[i] = 0;
+    }
 }
 
 inline void setVertNorm(vertex* vert, vec3_t p, vec2_t t, vec3_t n) {
@@ -124,6 +141,17 @@ inline int buildQuad(vertex* vert, vec3_t a, vec3_t b, vec3_t c, vec3_t d, vec2_
         setVert(vert, a, ta); vert++;
         setVert(vert, c, tc); vert++;
         setVert(vert, d, td); vert++;
+        
+        return 6;
+}
+
+inline int buildQuadRigged(vertex_rigged* vert, vec3_t a, vec3_t b, vec3_t c, vec3_t d, vec2_t ta, vec2_t tb, vec2_t tc, vec2_t td, int bone) {
+        setVertRigged(vert, a, ta, bone); vert++;
+        setVertRigged(vert, b, tb, bone); vert++;
+        setVertRigged(vert, c, tc, bone); vert++;        
+        setVertRigged(vert, a, ta, bone); vert++;
+        setVertRigged(vert, c, tc, bone); vert++;
+        setVertRigged(vert, d, td, bone); vert++;
         
         return 6;
 }
@@ -284,6 +312,7 @@ inline int buildCuboid(vertex* vert, vec3_t cp, vec3_t r, float hh, float vv) {
 
 int32_t loadObject(int32_t numFaces, const index_triangle_t* faces, const init_vertex_t* vertices, const init_vertex_t* normals, const vec2_t* texcoords, vertex* vbo);
 int32_t loadObject2(int32_t numFaces, const index_trianglepv_t* faces, const init_vertex_t* vertices, const init_vertex_t* normals, const vec2_t* texcoords, vertex2* vbo);
+int32_t loadObject2to1(int32_t numFaces, const index_trianglepv_t* faces, const init_vertex_t* vertices, const init_vertex_t* normals, const vec2_t* texcoords, vertex* vbo);
 
 extern void fade();
 extern void resetShadeEnv();
@@ -293,4 +322,6 @@ extern void stopPerfCounter(int idx);
 extern float readPerfCounter(int idx);
 
 extern bool loadTex3DS(C3D_Tex* tex, C3D_TexCube* cube, const char* path);
+extern bool loadTex3DSMem(C3D_Tex* tex, C3D_TexCube* cube, const void* data, size_t size);
+
 #endif

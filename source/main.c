@@ -14,9 +14,9 @@ float fadeVal;
 #define min(a, b) (((a)<(b))?(a):(b))
 #define max(a, b) (((a)>(b))?(a):(b))
 
-#define AUDIO_BUFSIZE 1024
+#define AUDIO_BUFSIZE 512
 
-#define SONG_BPM 168.0
+#define SONG_BPM 173.0
 #define SONG_BPS (SONG_BPM / 60.0)
 #define SONG_SPS 32000
 #define SONG_SPB (SONG_SPS / SONG_BPS)
@@ -113,13 +113,13 @@ int main() {
     effect_list[2].render = effectDanceRender;
     effect_list[2].exit = effectDanceExit;
     
-    effect_list[3].init = effectSunInit;
-    effect_list[3].render = effectSunRender;
-    effect_list[3].exit = effectSunExit;
+    effect_list[3].init = effectCoolCubeInit;
+    effect_list[3].render = effectCoolCubeRender;
+    effect_list[3].exit = effectCoolCubeExit;
     
-    effect_list[4].init = effectSunInit;
-    effect_list[4].render = effectSunRender;
-    effect_list[4].exit = effectSunExit;
+    effect_list[4].init = effectTunnelInit;
+    effect_list[4].render = effectTunnelRender;
+    effect_list[4].exit = effectTunnelExit;
     
     effect_list[5].init = effectSunInit;
     effect_list[5].render = effectSunRender;
@@ -137,9 +137,9 @@ int main() {
     C3D_RenderTargetSetOutput(targetLeft, GFX_TOP, GFX_LEFT,  DISPLAY_TRANSFER_FLAGS);
     C3D_RenderTargetSetOutput(targetRight, GFX_TOP, GFX_RIGHT, DISPLAY_TRANSFER_FLAGS);
 
-    fadePixels = (Pixel*)linearAlloc(SCREEN_TEXTURE_WIDTH * SCREEN_TEXTURE_HEIGHT * sizeof(Pixel));
-    InitialiseBitmap(&fadeBitmap, SCREEN_TEXTURE_WIDTH, SCREEN_TEXTURE_HEIGHT, BytesPerRowForWidth(SCREEN_TEXTURE_WIDTH), fadePixels);
-    C3D_TexInit(&fade_tex, SCREEN_TEXTURE_HEIGHT, SCREEN_TEXTURE_WIDTH, GPU_RGBA8);
+    fadePixels = (Pixel*)linearAlloc(64 * 64 * sizeof(Pixel));
+    InitialiseBitmap(&fadeBitmap, 64, 64, BytesPerRowForWidth(64), fadePixels);
+    C3D_TexInit(&fade_tex, 64, 64, GPU_RGBA8);
 
     romfsInit();
     
@@ -185,20 +185,17 @@ int main() {
     ndspChnWaveBufAdd(0, &wave_buffer[0]);
     ndspChnWaveBufAdd(0, &wave_buffer[1]);
     
-    // Start up first effect
-    int current_effect = 5;
-#ifndef DEV_MODE
-    current_effect = 0;
-#endif
-    
-    effect_list[current_effect].init();
-    
     const struct sync_track* sync_fade = sync_get_track(rocket, "global.fade");;
-    const struct sync_track* sync_effect = sync_get_track(rocket, "global.effect");;
+    const struct sync_track* sync_effect = sync_get_track(rocket, "global.effect");;    
+    
+    // Start up first effect
+    double row = 0.0;    
+    row = audio_get_row();
+    int current_effect = (int)sync_get_val(sync_effect, row);
+    effect_list[current_effect].init();
     
     int fc = 0;
     while (aptMainLoop()) {
-        double row = 0.0;
         if(!DUMPFRAMES) {
             row = audio_get_row();
         }
@@ -225,14 +222,14 @@ int main() {
 #endif
 
         fadeVal = sync_get_val(sync_fade, row);
-        
-        FillBitmap(&fadeBitmap, RGBAf(1.0, 1.0, 1.0, fadeVal));
-        GSPGPU_FlushDataCache(fadePixels, SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(Pixel));
-        GX_DisplayTransfer((u32*)fadePixels, GX_BUFFER_DIM(SCREEN_TEXTURE_WIDTH, SCREEN_TEXTURE_HEIGHT), (u32*)fade_tex.data, GX_BUFFER_DIM(SCREEN_TEXTURE_WIDTH, SCREEN_TEXTURE_HEIGHT), TEXTURE_TRANSFER_FLAGS);
+//         printf("whaat\n");
+        FillBitmap(&fadeBitmap, RGBAf(0.0, 0.0, 0.0, fadeVal));
+        GSPGPU_FlushDataCache(fadePixels, 64 * 64 * sizeof(Pixel));
+        GX_DisplayTransfer((u32*)fadePixels, GX_BUFFER_DIM(64, 64), (u32*)fade_tex.data, GX_BUFFER_DIM(64, 64), TEXTURE_TRANSFER_FLAGS);
         gspWaitForPPF();
-        
+//         printf("we in here\n");
         hidScanInput();
-        
+//         printf("why?\n");
         // Respond to user input
         u32 kDown = hidKeysDown();
         if (kDown & KEY_START) {
@@ -240,9 +237,9 @@ int main() {
         }  
         float slider = osGet3DSliderState();
         float iod = slider / 3.0;
-        
+//         printf("okay %d?\n", current_effect);
         effect_list[current_effect].render(targetLeft, targetRight, iod, row);
-        
+//         printf("hah\n");
         if(DUMPFRAMES) {
             gspWaitForP3D();
             gspWaitForPPF();

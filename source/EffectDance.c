@@ -11,6 +11,8 @@
 #include <vshader_skybox_shbin.h>
 
 #include "ModelMotionGuy.h"
+#include "ModelPlatform.h"
+#include "ModelCylinder.h"
 
 // Shader / textures
 static C3D_AttrInfo* attrInfo;
@@ -25,12 +27,9 @@ static int uLocModelview;
 static int uLocProjectionSkybox;
 static int uLocModelviewSkybox;
 
-static C3D_Tex skybox_tex;
-static C3D_TexCube skybox_cube;
-int skyboxVertCount;
-
-static C3D_Tex station_tex_col;
-static C3D_Tex station_tex_norm;
+static C3D_Tex guy_tex;
+static C3D_Tex plat_tex;
+static C3D_Tex screen_tex;
 
 // Lighting
 static C3D_LightEnv lightEnv;
@@ -49,27 +48,37 @@ static const C3D_Material lightMaterial = {
 // Boooones
 static int uLocBone[21];
 
-// Proctex
-static C3D_ProcTex pt;
-static C3D_ProcTexLut pt_map;
-static C3D_ProcTexLut pt_noise;
-static C3D_ProcTexColorLut pt_clr;
+// Cylinder
+static Pixel* screenPixels;
+static Bitmap screen;
 
 // VBOs
-#define VBO_SIZE 70000
+#define VBO_SIZE 30000
 static vertex_rigged* vbo;
 static C3D_BufInfo* bufInfo;
 
 // Sync
 const struct sync_track* sync_zoom;
 const struct sync_track* sync_rotate;
-const struct sync_track* sync_noise;
+const struct sync_track* sync_movement;
+const struct sync_track* sync_stars;
+
+// Stars!
+#define NUM_STARS 100
+static vec2_t starPos[NUM_STARS];
 
 void effectDanceInit() {
     // initialize everything here
-    sync_zoom = sync_get_track(rocket, "sun2.zoom");
-    sync_rotate = sync_get_track(rocket, "sun2.rotate");
-    sync_noise = sync_get_track(rocket, "sun2.noise");
+    sync_zoom = sync_get_track(rocket, "guy.zoom");
+    sync_rotate = sync_get_track(rocket, "guy.rotate");
+    sync_movement = sync_get_track(rocket, "guy.anim");
+    sync_stars = sync_get_track(rocket, "guy.stars");
+    
+    // Stars
+    for(int i = 0; i < NUM_STARS; i++) {
+        starPos[i].x = (float)(rand() % 256);
+        starPos[i].y = (float)(rand() % 256);
+    }
     
     // Set up "normal 3D rendering" shader and get uniform locations
     vshader_skybox_dvlb = DVLB_ParseFile((u32*)vshader_skybox_shbin, vshader_skybox_shbin_size);
@@ -87,7 +96,6 @@ void effectDanceInit() {
     for(int i = 0; i < 21; i++) {
         sprintf(boneName, "bone%02d", i);
         uLocBone[i] = shaderInstanceGetUniformLocation(shaderProgram.vertexShader, boneName);
-        printf("%s -> %d\n", boneName, uLocBone[i]);
     }
     
     shaderProgramInit(&shaderProgramSkybox);
@@ -100,73 +108,78 @@ void effectDanceInit() {
     // Allocate VBOs
     vbo = (vertex_rigged*)linearAlloc(sizeof(vertex_rigged) * VBO_SIZE);
     memcpy(vbo, motionGuyVerts, motionGuyNumVerts * sizeof(vertex_rigged));
+    memcpy(&vbo[motionGuyNumVerts], platformVerts, platformNumVerts * sizeof(vertex_rigged));
+    memcpy(&vbo[motionGuyNumVerts + platformNumVerts], cylinderVerts, cylinderNumVerts * sizeof(vertex_rigged));
     
     bufInfo = C3D_GetBufInfo();
     BufInfo_Init(bufInfo);
     BufInfo_Add(bufInfo, (void*)vbo, sizeof(vertex_rigged), 5, 0x43210);
+        
+    // Load textures for station
+    loadTex3DS(&guy_tex, NULL, "romfs:/guy.t3x");
+    C3D_TexSetFilter(&guy_tex, GPU_LINEAR, GPU_NEAREST);
+    C3D_TexSetWrap(&guy_tex, GPU_CLAMP_TO_EDGE, GPU_CLAMP_TO_EDGE); 
     
-    // Load statics
-    //loadObject2(numFacesSpaceStation, facesSpaceStation, verticesSpaceStation, normalsSpaceStation, texcoordsSpaceStation, &vbo[0]);
-    //loadObject2(numFacesSun, facesSun, verticesSun, normalsSun, texcoordsSun, &vbo[numFacesSpaceStation * 3]);
-    //skyboxVertCount = buildCube2(&vbo[(numFacesSpaceStation + numFacesSun) * 3], vec3(0, 0, 0), 29500.0, 0.0, 0.0);
+    loadTex3DS(&plat_tex, NULL, "romfs:/platform.t3x");
+    C3D_TexSetFilter(&plat_tex, GPU_LINEAR, GPU_NEAREST);
+    C3D_TexSetWrap(&plat_tex, GPU_CLAMP_TO_EDGE, GPU_CLAMP_TO_EDGE);
     
-//     // Load texture for the skybox
-//     loadTex3DS(&skybox_tex, &skybox_cube, "romfs:/stars.t3x");
-//     C3D_TexSetFilter(&skybox_tex, GPU_LINEAR, GPU_LINEAR);
-//     C3D_TexSetWrap(&skybox_tex, GPU_CLAMP_TO_EDGE, GPU_CLAMP_TO_EDGE);       
-//     
-//     // Load textures for station TODO replace by real model
-//     loadTex3DS(&station_tex_col, NULL, "romfs:/tex_spacestation_color.t3x");
-//     C3D_TexSetFilter(&station_tex_col, GPU_LINEAR, GPU_NEAREST);
-//     C3D_TexSetWrap(&station_tex_col, GPU_CLAMP_TO_EDGE, GPU_CLAMP_TO_EDGE);    
-//     
-//     loadTex3DS(&station_tex_norm, NULL, "romfs:/tex_spacestation_normals.t3x");
-//     C3D_TexSetFilter(&station_tex_norm, GPU_LINEAR, GPU_NEAREST);
-//     C3D_TexSetWrap(&station_tex_norm, GPU_CLAMP_TO_EDGE, GPU_CLAMP_TO_EDGE);
+    screenPixels = (Pixel*)linearAlloc(256 * 256 * sizeof(Pixel));
+    InitialiseBitmap(&screen, 256, 256, BytesPerRowForWidth(256), screenPixels);
+    C3D_TexInit(&screen_tex, 256, 256, GPU_RGBA8);
+    C3D_TexSetFilter(&screen_tex, GPU_LINEAR, GPU_LINEAR);
+    C3D_TexSetWrap(&screen_tex, GPU_REPEAT, GPU_REPEAT);    
 }
 
 void effectDanceUpdate(float row) {
-    // You can update textures here, but afterwards you have to display transfer and wait for PPF interrupt:
-    // GSPGPU_FlushDataCache(screenPixels, SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(Pixel));
-    // GX_DisplayTransfer((u32*)screenPixels, GX_BUFFER_DIM(SCREEN_TEXTURE_WIDTH, SCREEN_TEXTURE_HEIGHT), (u32*)screen_tex.data, GX_BUFFER_DIM(SCREEN_TEXTURE_WIDTH, SCREEN_TEXTURE_HEIGHT), TEXTURE_TRANSFER_FLAGS);
-    // gspWaitForPPF();
+    float sync_stars_val = sync_get_val(sync_stars, row);
     
-    // Or vertices or any other state ofc.
-    // How to get a value from a sync track:
-    // Literally nothing lol.
+    // Render some 2D stuff
+    FillBitmap(&screen, RGBAf(0.05, 0.05, 0.05, 1.0));    
+    for(int i = 0; i < NUM_STARS; i++) {
+        float x = fmod(starPos[i].x - sync_stars_val, 256.0);
+        if(x < 0.0) {
+            x = x + 256.0;
+        }
+        DrawFilledCircle(&screen, x, starPos[i].y + 5, 2, RGBAf(0.85, 0.85, 0.85, 1.0));
+    }
+    
+    GSPGPU_FlushDataCache(screenPixels, 256 * 256 * sizeof(Pixel));
+    GX_DisplayTransfer((u32*)screenPixels, GX_BUFFER_DIM(256, 256), (u32*)screen_tex.data, GX_BUFFER_DIM(256, 256), TEXTURE_TRANSFER_FLAGS);
+    gspWaitForPPF();
 }
 
 void effectDanceDraw(float iod, float row) {
     resetShadeEnv();
     float sync_zoom_val = sync_get_val(sync_zoom, row);
     float sync_rotate_val = sync_get_val(sync_rotate, row);
-    float sync_noise_val = sync_get_val(sync_noise, row);
+    float sync_movement_val = sync_get_val(sync_movement, row);
 
     // Projection matrix
     C3D_Mtx projection;
-    Mtx_PerspStereoTilt(&projection, 65.0f * M_PI / 180.0f, 400.0f / 240.0f, 0.2f, 70000.0f, iod, 2.0f, false);
+    Mtx_PerspStereoTilt(&projection, 65.0f * M_PI / 180.0f, 400.0f / 240.0f, 0.2f, 10000000.0f, iod, 2.0f, false);
     
     // Modelview matrix
     C3D_Mtx modelview;
     Mtx_Identity(&modelview);
     Mtx_Translate(&modelview, 0.0, 0.0, sync_zoom_val, true);
     //printf("%f %f %f %f\n", modelview.m[12], modelview.m[13], modelview.m[14], modelview.m[15]);
-    Mtx_RotateX(&modelview, sync_rotate_val, true);
-    //Mtx_RotateZ(&modelview, sync_rotate_val * 0.2, true);
+    Mtx_RotateX(&modelview, -1.0, true);
+    Mtx_RotateZ(&modelview, sync_rotate_val * 0.2, true);
     
     C3D_Mtx modelviewSky = modelview;
     Mtx_RotateY(&modelviewSky, 3.0, true);
     
-    // Skybox shader
-    C3D_BindProgram(&shaderProgramSkybox);
+    // Normal drawing shader
+    C3D_BindProgram(&shaderProgram);
+    
+    // Uniforms to shader
+    C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLocProjection, &projection);
+    C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLocModelview, &modelview);
     
     // GPU state for additive blend
     C3D_DepthTest(false, GPU_GEQUAL, GPU_WRITE_COLOR);
     C3D_AlphaBlend(GPU_BLEND_ADD, GPU_BLEND_ADD, GPU_ONE, GPU_ONE, GPU_ONE, GPU_ONE);
-    
-    // Uniforms to shader
-    C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLocProjectionSkybox, &projection);
-    C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLocModelviewSkybox, &modelviewSky);
     
     // Passthrough texenv and empty lightenv
     C3D_LightEnvInit(&lightEnv);
@@ -177,63 +190,82 @@ void effectDanceDraw(float iod, float row) {
     C3D_TexEnvSrc(env, C3D_Both, GPU_TEXTURE0, 0, 0);
     C3D_TexEnvFunc(env, C3D_Both, GPU_REPLACE);
     
-    // Lets draw a skybox
-    C3D_TexBind(0, &skybox_tex);
-    C3D_CullFace(GPU_CULL_FRONT_CCW);
-//     C3D_DrawArrays(GPU_TRIANGLES, (numFacesSpaceStation + numFacesSun) * 3, skyboxVertCount); TODO
+    // Surrounding cylinder
+    C3D_TexBind(0, &screen_tex);
+    C3D_Mtx boneMat;
+    for(int i = 0; i < 16; i++) {
+        boneMat.m[i] = 0.0;
+    }
+    boneMat.m[0] = 1.0;
+    boneMat.m[5] = 1.0;
+    boneMat.m[10] = 1.0;
+    C3D_CullFace(GPU_CULL_NONE);
+    C3D_FVUnifMtx3x4(GPU_VERTEX_SHADER, uLocBone[0], &boneMat);
+    C3D_DrawArrays(GPU_TRIANGLES, motionGuyNumVerts + platformNumVerts, cylinderNumVerts);
     
-    // Normal drawing shader
-    C3D_BindProgram(&shaderProgram);
-    C3D_TexBind(0, &station_tex_col);
-    C3D_TexBind(1, &station_tex_norm);
-    
-    // Drawing with texture, 2 lights, normal map
+    // Drawing with texture
     C3D_LightEnvInit(&lightEnv);
     C3D_LightEnvBind(&lightEnv);
-
+    
     LightLut_Phong(&lutPhong, 100.0);
     C3D_LightEnvLut(&lightEnv, GPU_LUT_D0, GPU_LUTINPUT_LN, false, &lutPhong);
     
-//     LightLut_FromFunc(&lutShittyFresnel, badFresnel, 1.9, false);
-//     C3D_LightEnvLut(&lightEnv, GPU_LUT_FR, GPU_LUTINPUT_NV, false, &lutShittyFresnel);
-//     C3D_LightEnvFresnel(&lightEnv, GPU_PRI_SEC_ALPHA_FRESNEL);
+    LightLut_FromFunc(&lutShittyFresnel, badFresnel, 1.9, false);
+    C3D_LightEnvLut(&lightEnv, GPU_LUT_FR, GPU_LUTINPUT_NV, false, &lutShittyFresnel);
+    C3D_LightEnvFresnel(&lightEnv, GPU_PRI_SEC_ALPHA_FRESNEL);
     
     C3D_FVec lightVec = FVec4_New(1.0, 3.0, 3.0, 1.0);
     C3D_LightInit(&light, &lightEnv);
-    C3D_LightColor(&light, 0.8, 0.8, 1.0);
+    C3D_LightColor(&light, 2.0, 2.0, 2.0);
     C3D_LightPosition(&light, &lightVec);
 
+//     env = C3D_GetTexEnv(0);
+//     C3D_TexEnvInit(env);
+//     C3D_TexEnvSrc(env, C3D_Both, GPU_FRAGMENT_PRIMARY_COLOR, GPU_FRAGMENT_SECONDARY_COLOR, 0);
+//     C3D_TexEnvFunc(env, C3D_Both, GPU_ADD);
+    
     env = C3D_GetTexEnv(0);
     C3D_TexEnvInit(env);
-    C3D_TexEnvSrc(env, C3D_Both, GPU_FRAGMENT_PRIMARY_COLOR, GPU_FRAGMENT_SECONDARY_COLOR, 0);
-    C3D_TexEnvFunc(env, C3D_Both, GPU_ADD);
+    C3D_TexEnvSrc(env, C3D_Both, GPU_TEXTURE0, GPU_FRAGMENT_PRIMARY_COLOR, 0);
+    C3D_TexEnvFunc(env, C3D_RGB, GPU_MODULATE);
+    
+    env = C3D_GetTexEnv(1);
+    C3D_TexEnvInit(env);
+    C3D_TexEnvSrc(env, C3D_Both, GPU_PREVIOUS, GPU_FRAGMENT_SECONDARY_COLOR, 0);
+    C3D_TexEnvFunc(env, C3D_RGB, GPU_ADD);
 
     // GPU state for normal drawing
     C3D_DepthTest(true, GPU_GEQUAL, GPU_WRITE_ALL);
     C3D_AlphaBlend(GPU_BLEND_ADD, GPU_BLEND_ADD, GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA);
     //C3D_AlphaBlend(GPU_BLEND_ADD, GPU_BLEND_ADD, GPU_ONE, GPU_ONE, GPU_ONE, GPU_ONE);
     
-    // Uniforms to shader
-    C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLocProjection, &projection);
-    C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLocModelview, &modelview);
-    
     // Bones to shader TODO can we not do this twice? probably unvaoivable though unless I want to reverse draw order for right eye
-    int frame = (int)sync_noise_val;
+    int frame = (int)sync_movement_val;
     for(int i = 0; i < 21; i++) {
-        C3D_Mtx boneMat;
         Mtx_Identity(&boneMat);
         for(int j = 0; j < 4 * 3; j++) {
             boneMat.m[j] = motionGuyAnim[frame][i][j];
         }
         
-//         printf("%d -> %f %f\n", uLocBone[i], boneMat.m[0], boneMat.m[1]);
         C3D_FVUnifMtx3x4(GPU_VERTEX_SHADER, uLocBone[i], &boneMat);
     }
     
-    // Lets draw a space station
-    C3D_CullFace(GPU_CULL_NONE); 
+    // Draw the guy
+    C3D_TexBind(0, &guy_tex);
+    C3D_CullFace(GPU_CULL_BACK_CCW); 
     C3D_LightEnvMaterial(&lightEnv, &lightMaterial);
     C3D_DrawArrays(GPU_TRIANGLES, 0, motionGuyNumVerts);
+    
+    // Platform    
+    C3D_TexBind(0, &plat_tex);
+    for(int i = 0; i < 16; i++) {
+        boneMat.m[i] = 0.0;
+    }
+    boneMat.m[0] = 1.0;
+    boneMat.m[5] = 1.0;
+    boneMat.m[10] = 1.0;
+    C3D_FVUnifMtx3x4(GPU_VERTEX_SHADER, uLocBone[0], &boneMat);
+    C3D_DrawArrays(GPU_TRIANGLES, motionGuyNumVerts, platformNumVerts);
 }
 
 void effectDanceRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRight, float iod, float row) {
@@ -251,9 +283,9 @@ void effectDanceRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRig
     
     // Start frame
     C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
-    C3D_RenderTargetClear(targetLeft, C3D_CLEAR_ALL, 0xFF339922, 0);
-    C3D_RenderTargetClear(targetRight, C3D_CLEAR_ALL, 0xFF339922, 0);   
-    
+    C3D_RenderTargetClear(targetLeft, C3D_CLEAR_ALL, 0x000000FF, 0);
+    C3D_RenderTargetClear(targetRight, C3D_CLEAR_ALL, 0x000000FF, 0);   
+
     // Left eye
     C3D_FrameDrawOn(targetLeft);
     effectDanceDraw(-iod, row);
@@ -276,14 +308,15 @@ void effectDanceExit() {
     
     // Free textures
     printf("tex free\n");
-    C3D_TexDelete(&skybox_tex);
-    C3D_TexDelete(&station_tex_col);
-    C3D_TexDelete(&station_tex_norm);
+    C3D_TexDelete(&plat_tex);
+    C3D_TexDelete(&guy_tex);
+    C3D_TexDelete(&screen_tex);
     
     // Free allocated memory
     printf("vbo free\n");
     linearFree(vbo);
-
+    linearFree(screenPixels);
+    
     // Free the shaders
     printf("shaders free\n");
     shaderProgramFree(&shaderProgram);

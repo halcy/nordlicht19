@@ -41,6 +41,14 @@ float lutZero(float input, float ignored) {
     return(0.0);
 }
 
+float lutSquaredDist(float input, float offset, float scale) {
+    return((input*input) * scale + offset);
+}
+
+float lutDist(float input, float offset, float scale) {
+    return(sqrt(input*input) * scale + offset);
+}
+
 static TickCounter perfCounters[4];
 static int perfCounterInitialized = 0;
 void startPerfCounter(int idx) {
@@ -289,6 +297,29 @@ int32_t loadObjectRigged(int32_t numFaces, const index_triangle_t* faces, const 
     return numFaces * 3;
 }
 
+
+int32_t loadObject2to1(int32_t numFaces, const index_trianglepv_t* faces, const init_vertex_t* vertices, const init_vertex_t* normals, const vec2_t* texcoords, vertex* vbo) {
+    for(int f = 0; f < numFaces; f++) {
+        for(int v = 0; v < 3; v++) {
+            // Set up vertex
+            uint32_t vertexIndex = faces[f].v[v];
+            vbo[f * 3 + v].position[0] = vertices[vertexIndex].x;
+            vbo[f * 3 + v].position[1] = vertices[vertexIndex].y;
+            vbo[f * 3 + v].position[2] = vertices[vertexIndex].z;
+            
+            // Set normals to vertex normals
+            vbo[f * 3 + v].normal[0] = normals[faces[f].v[v+3]].x;
+            vbo[f * 3 + v].normal[1] = normals[faces[f].v[v+3]].y;
+            vbo[f * 3 + v].normal[2] = normals[faces[f].v[v+3]].z;
+
+            // Set texcoords
+            vbo[f * 3 + v].texcoord[0] = texcoords[faces[f].v[v+6]].x;
+            vbo[f * 3 + v].texcoord[1] = texcoords[faces[f].v[v+6]].y;
+        }
+    }
+    return numFaces * 3;
+}
+
 int32_t loadObject2(int32_t numFaces, const index_trianglepv_t* faces, const init_vertex_t* vertices, const init_vertex_t* normals, const vec2_t* texcoords, vertex2* vbo) {
     for(int f = 0; f < numFaces; f++) {
         for(int v = 0; v < 3; v++) {
@@ -316,7 +347,7 @@ int32_t loadObject2(int32_t numFaces, const index_trianglepv_t* faces, const ini
     return numFaces * 3;
 }
 
-// Helper function for loading a texture from a t3x file (from citro3d examples)
+// Helper function for loading a texture from a t3x file 
 bool loadTex3DS(C3D_Tex* tex, C3D_TexCube* cube, const char* path) {
     FILE* f = fopen(path, "rb");
     if (!f) {
@@ -324,10 +355,23 @@ bool loadTex3DS(C3D_Tex* tex, C3D_TexCube* cube, const char* path) {
         return false;
     }
     
-    Tex3DS_Texture t3x = Tex3DS_TextureImportStdio(f, tex, cube, false);
+    Tex3DS_Texture t3x = Tex3DS_TextureImportStdio(f, tex, cube, true);
     fclose(f); 
     if (!t3x) {
         printf("Texture load failure on %s\n", path);
+        return false; 
+    }
+    
+    // Delete the t3x object since we don't need it
+    Tex3DS_TextureFree(t3x);
+    return true;
+}
+
+// Helper function for loading a texture from memory
+bool loadTex3DSMem(C3D_Tex* tex, C3D_TexCube* cube, const void* data, size_t size) {
+    Tex3DS_Texture t3x = Tex3DS_TextureImport(data, size, tex, cube, true);
+    if (!t3x) {
+        printf("Texture load failure on memory texture.\n");
         return false; 
     }
     

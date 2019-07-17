@@ -15,6 +15,14 @@ extern void effectDanceInit();
 extern void effectDanceRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRight, float iod, float time);
 extern void effectDanceExit();
 
+extern void effectCoolCubeInit();
+extern void effectCoolCubeRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRight, float iod, float time);
+extern void effectCoolCubeExit();
+
+extern void effectTunnelInit();
+extern void effectTunnelRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRight, float iod, float time);
+extern void effectTunnelExit();
+
 typedef void (*init_fun_t)();
 typedef void (*render_fun_t)(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRight, float iod, float time);
 typedef void (*exit_fun_t)();
