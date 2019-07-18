@@ -106,6 +106,6 @@ endef
 	3dsxtool $< --smdh=$(BASEDIR)build/$(TARGET).smdh --romfs=$(BASEDIR)romfs/ $(_3DSXFLAGS) $@
 
 # Linking rule
-%.elf: 3dsx_crt0.o
+%.elf: 
 	$(LD) $(LDFLAGS) $(OFILES) $(LIBPATHS) $(LIBS) -o $@
 	$(NM) -CSn $@ > $(notdir $*.lst)

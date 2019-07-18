@@ -11,8 +11,6 @@
 #include "Perlin.h"
 
 #include "ModelTunnel.h"
-#include "tex_tunnel_bin.h"
-#include "tex_tunnel_glow_bin.h"
 
 static DVLB_s* vshader_dvlb;
 static shaderProgram_s program;
@@ -49,7 +47,7 @@ static int uLocBone[21];
 
 static vertex_rigged* vbo;
 int32_t vertCount;
-#define MAX_VERTS 40000
+#define MAX_VERTS 60000
 
 // Powertunnel
 void effectTunnelInit() {
@@ -81,11 +79,11 @@ void effectTunnelInit() {
         uLocBone[i] = shaderInstanceGetUniformLocation(program.vertexShader, boneName);
     }
     
-    loadTex3DSMem(&tunnelTex, NULL, tex_tunnel_bin, tex_tunnel_bin_size);
+    loadTex3DS(&tunnelTex, NULL, "romfs:/tex_tunnel.bin");
     C3D_TexSetFilter(&tunnelTex, GPU_LINEAR, GPU_LINEAR);
     C3D_TexSetWrap(&tunnelTex, GPU_CLAMP_TO_EDGE, GPU_CLAMP_TO_EDGE);
     
-    loadTex3DSMem(&tunnelTexGlow, NULL, tex_tunnel_glow_bin, tex_tunnel_glow_bin_size);
+    loadTex3DS(&tunnelTexGlow, NULL, "romfs:/tex_tunnel_glow.bin");
     C3D_TexSetFilter(&tunnelTexGlow, GPU_LINEAR, GPU_LINEAR);
     C3D_TexSetWrap(&tunnelTexGlow, GPU_CLAMP_TO_EDGE, GPU_CLAMP_TO_EDGE);        
 }

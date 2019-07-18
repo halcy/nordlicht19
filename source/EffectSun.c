@@ -12,8 +12,8 @@
 
 #include "MarchingCubes.h"
 
-#define MAX_METABALL_VERTS 10000
-#define MAX_STATIC_VERTS 5000
+#define MAX_METABALL_VERTS 20000
+#define MAX_STATIC_VERTS 10000
 #define GRID_SIZE 20
 #define CELL_SIZE ((0.05 * 32) / GRID_SIZE)
 
@@ -26,7 +26,6 @@
 #define CENT_DIFF(f, c, d, t) vec3(f(c.x - d, c.y, c.z, t) - f(c.x + d, c.y, c.z, t), f(c.x, c.y - d, c.z, t) - f(c.x, c.y + d, c.z, t), f(c.x, c.y, c.z - d, t) - f(c.x, c.y, c.z + d, t))
 
 #include "SpaceRoom.h"
-#include "stars_bin.h"
 
 // Sync
 const struct sync_track* sync_anim_t;
@@ -128,27 +127,30 @@ void effectSunInit() {
     metaballBufInfo = C3D_GetBufInfo();
     BufInfo_Init(metaballBufInfo);
     BufInfo_Add(metaballBufInfo, (void*)metaballVBO, sizeof(vertex), 3, 0x210);
-    
+//     printf("A");
     // Allocate grid
-    marchingCubesGrid = (float*)malloc(2 * GRID_SIZE * GRID_SIZE * GRID_SIZE * sizeof(float));
-    marchingCubesNormals = (vec3_t*)malloc(2 * GRID_SIZE * GRID_SIZE * GRID_SIZE * sizeof(vec3_t));
-    marchingCubesMarkGrid = (int*)malloc(2 * GRID_SIZE * GRID_SIZE * GRID_SIZE * sizeof(int));
-    marchingCubesQueue = (gridloc*)malloc(2 * GRID_SIZE * GRID_SIZE * GRID_SIZE * sizeof(gridloc));
+    marchingCubesGrid = (float*)linearAlloc(2 * GRID_SIZE * GRID_SIZE * GRID_SIZE * sizeof(float));
+    marchingCubesNormals = (vec3_t*)linearAlloc(2 * GRID_SIZE * GRID_SIZE * GRID_SIZE * sizeof(vec3_t));
+    marchingCubesMarkGrid = (int*)linearAlloc(2 * GRID_SIZE * GRID_SIZE * GRID_SIZE * sizeof(int));
+    marchingCubesQueue = (gridloc*)linearAlloc(2 * GRID_SIZE * GRID_SIZE * GRID_SIZE * sizeof(gridloc));
     marchingCubesMarkNb = 0;
-    
+//     printf("B");
     // Load statics
     loadObject2to1(numFacesSpaceRoom, facesSpaceRoom, verticesSpaceRoom, normalsSpaceRoom, texcoordsSpaceRoom, &metaballVBO[MAX_METABALL_VERTS]);
+//     printf("C");
     skyboxVertCount = buildCube(&metaballVBO[MAX_METABALL_VERTS + numFacesSpaceRoom * 3], vec3(0, 0, 0), 100.0, 0.0, 0.0);
-    
+//     printf("D");
     // Load texture for the skybox
-    loadTex3DSMem(&skybox_tex, &skybox_cube, stars_bin, stars_bin_size);
+    loadTex3DS(&skybox_tex, &skybox_cube, "romfs:/stars.bin");
     C3D_TexSetFilter(&skybox_tex, GPU_LINEAR, GPU_LINEAR);
     C3D_TexSetWrap(&skybox_tex, GPU_CLAMP_TO_EDGE, GPU_CLAMP_TO_EDGE);    
     
+//     printf("E");
     // And texture for the room
-    loadTex3DS(&room_tex, NULL, "romfs:/room.t3x");
+    loadTex3DS(&room_tex, NULL, "romfs:/tex_room.bin");
     C3D_TexSetFilter(&room_tex, GPU_LINEAR, GPU_LINEAR);
-    C3D_TexSetWrap(&room_tex, GPU_CLAMP_TO_EDGE, GPU_CLAMP_TO_EDGE);    
+    C3D_TexSetWrap(&room_tex, GPU_CLAMP_TO_EDGE, GPU_CLAMP_TO_EDGE); 
+//     printf("X");
 }
 
 float field_torus(float xx, float yy, float zz) {
@@ -220,6 +222,7 @@ float fieldBoxen(float xx, float yy, float zz, float t, float r) {
 
 int firstframe = 5;
 void effectSunUpdate(float row) {
+//     printf("UPD");
     // You can update textures here, but afterwards you have to display transfer and wait for PPF interrupt:
     // GSPGPU_FlushDataCache(screenPixels, SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(Pixel));
     // GX_DisplayTransfer((u32*)screenPixels, GX_BUFFER_DIM(SCREEN_TEXTURE_WIDTH, SCREEN_TEXTURE_HEIGHT), (u32*)screen_tex.data, GX_BUFFER_DIM(SCREEN_TEXTURE_WIDTH, SCREEN_TEXTURE_HEIGHT), TEXTURE_TRANSFER_FLAGS);
@@ -423,6 +426,7 @@ void effectSunUpdate(float row) {
 }
 
 void effectSunDraw(float iod, float row) {
+//     printf("REND");
     // Projection matrix
     C3D_Mtx projection;
     Mtx_PerspStereoTilt(&projection, 65.0f * M_PI / 180.0f, 400.0f / 240.0f, 0.2f, 500.0f, iod, 2.0f, false);
@@ -595,10 +599,10 @@ void effectSunExit() {
     
     // Free allocated memory
     linearFree(metaballVBO);
-    free(marchingCubesGrid);
-    free(marchingCubesNormals);
-    free(marchingCubesMarkGrid);
-    free(marchingCubesQueue);
+    linearFree(marchingCubesGrid);
+    linearFree(marchingCubesNormals);
+    linearFree(marchingCubesMarkGrid);
+    linearFree(marchingCubesQueue);
     
     // Free the shaders
     shaderProgramFree(&shaderProgram);

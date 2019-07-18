@@ -1,5 +1,4 @@
 #include "Tools.h"
-#include "music_bin.h"
 #include "Rocket/sync.h"
 
 #include "Effects.h"
@@ -11,10 +10,13 @@ static Pixel* fadePixels;
 static Bitmap fadeBitmap;
 float fadeVal;
 
+u32 music_bin_size;
+u8* music_bin;
+
 #define min(a, b) (((a)<(b))?(a):(b))
 #define max(a, b) (((a)>(b))?(a):(b))
 
-#define AUDIO_BUFSIZE 512
+#define AUDIO_BUFSIZE 256
 
 #define SONG_BPM 173.0
 #define SONG_BPS (SONG_BPM / 60.0)
@@ -81,6 +83,7 @@ int connect_rocket() {
     return(0);
 }
 
+FILE *audioFile;
 void audio_callback(void* ignored) {
     ignored;
     if(wave_buffer[fill_buffer].status == NDSP_WBUF_DONE && (sample_pos + AUDIO_BUFSIZE) * sizeof(int16_t) < music_bin_size) {
@@ -88,26 +91,28 @@ void audio_callback(void* ignored) {
             sample_pos += AUDIO_BUFSIZE;
         }
         uint8_t *dest = (uint8_t*)wave_buffer[fill_buffer].data_pcm16;
-        memcpy(dest, &music_bin[(sample_pos - AUDIO_BUFSIZE) * sizeof(int16_t)], AUDIO_BUFSIZE * sizeof(int16_t));
+        fseek(audioFile, (sample_pos - AUDIO_BUFSIZE) * sizeof(int16_t), SEEK_SET);
+        fread(dest, AUDIO_BUFSIZE * sizeof(int16_t), 1, audioFile);
+        //memcpy(dest, &music_bin[(sample_pos - AUDIO_BUFSIZE) * sizeof(int16_t)], AUDIO_BUFSIZE * sizeof(int16_t));
         DSP_FlushDataCache(dest, AUDIO_BUFSIZE * sizeof(int16_t));
         ndspChnWaveBufAdd(0, &wave_buffer[fill_buffer]);
         fill_buffer = !fill_buffer;
     }
 }
 
-int main() {
+int main() {    
     bool DUMPFRAMES = false;
     bool DUMPFRAMES_3D = false;
 
     // Set up effect sequence
     effect effect_list[10];
-    effect_list[0].init = effectSunInit;
-    effect_list[0].render = effectSunRender;
-    effect_list[0].exit = effectSunExit;
+    effect_list[0].init = effectSun2Init;
+    effect_list[0].render = effectSun2Render;
+    effect_list[0].exit = effectSun2Exit;
     
-    effect_list[1].init = effectSun2Init;
-    effect_list[1].render = effectSun2Render;
-    effect_list[1].exit = effectSun2Exit;
+    effect_list[1].init = effectSunInit;
+    effect_list[1].render = effectSunRender;
+    effect_list[1].exit = effectSunExit;
     
     effect_list[2].init = effectDanceInit;
     effect_list[2].render = effectDanceRender;
@@ -140,8 +145,22 @@ int main() {
     fadePixels = (Pixel*)linearAlloc(64 * 64 * sizeof(Pixel));
     InitialiseBitmap(&fadeBitmap, 64, 64, BytesPerRowForWidth(64), fadePixels);
     C3D_TexInit(&fade_tex, 64, 64, GPU_RGBA8);
-
+ 
     romfsInit();
+    
+    // Open music
+//     printf("Music load ----- %d %d %d\n", linearSpaceFree(), vramSpaceFree(), mappableSpaceFree());
+//     music_bin = readFileMem(, &music_bin_size, false);
+
+    audioFile = fopen("romfs:/music2.bin", "rb");
+    fseek(audioFile, 0, SEEK_END);
+    music_bin_size = ftell(audioFile);
+    rewind(audioFile);
+    
+    // Load textures
+//     printf("Tex load ----- %d %d %d\n", linearSpaceFree(), vramSpaceFree(), mappableSpaceFree());
+//     stars_bin = readFileMem("romfs:/stars.bin", &stars_bin_size, false);
+//     tex_room_bin = readFileMem("romfs:/tex_room.bin", &tex_room_bin_size, false);
     
     // Rocket startup
 #ifndef SYNC_PLAYER
@@ -188,10 +207,27 @@ int main() {
     const struct sync_track* sync_fade = sync_get_track(rocket, "global.fade");;
     const struct sync_track* sync_effect = sync_get_track(rocket, "global.effect");;    
     
+    // Get first row value
+    double row = 0.0;  
+    row = audio_get_row();    
+#ifndef SYNC_PLAYER
+    if(sync_update(rocket, (int)floor(row), &rocket_callbakcks, (void *)0)) {
+        printf("Lost connection, retrying.\n");
+        if(connect_rocket()) {
+            return(0);
+        }
+    }
+#endif
+    
+    for(int i = 0; i < 100000; i++) {
+        if(i == 100000 - 1) {
+            printf("Spinwait complete.");
+        }
+    }
+    
     // Start up first effect
-    double row = 0.0;    
-    row = audio_get_row();
-    int current_effect = (int)sync_get_val(sync_effect, row);
+    int current_effect = (int)sync_get_val(sync_effect, row + 0.01);
+    printf("STARTUP @ %d\n", current_effect);
     effect_list[current_effect].init();
     
     int fc = 0;
@@ -212,11 +248,14 @@ int main() {
         }
 #endif
         int new_effect = (int)sync_get_val(sync_effect, row);
+//         printf("----- %d %d %d\n", linearSpaceFree(), vramSpaceFree(), mappableSpaceFree());
 #ifndef DEV_MODE
         if(new_effect != -1 && new_effect != current_effect) {
+            printf("EFFECT %d EXIT\n", current_effect);
             effect_list[current_effect].exit();
-            
+            printf("----- %d %d %d\n", linearSpaceFree(), vramSpaceFree(), mappableSpaceFree());
             current_effect = new_effect;
+            printf("EFFECT %d INIT\n", current_effect);
             effect_list[current_effect].init();
         }
 #endif

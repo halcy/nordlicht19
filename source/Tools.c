@@ -52,15 +52,15 @@ float lutDist(float input, float offset, float scale) {
 static TickCounter perfCounters[4];
 static int perfCounterInitialized = 0;
 void startPerfCounter(int idx) {
-    osTickCounterStart(&perfCounters[idx]);
+//     osTickCounterStart(&perfCounters[idx]);
 }
 
 void stopPerfCounter(int idx) {
-    osTickCounterUpdate(&perfCounters[idx]);
+//     osTickCounterUpdate(&perfCounters[idx]);
 }
 
 float readPerfCounter(int idx) {
-    return osTickCounterRead(&perfCounters[idx]);
+//     return osTickCounterRead(&perfCounters[idx]);
 }
 
 void resetShadeEnv() {
@@ -387,4 +387,25 @@ void fade() {
     if(fadeVal > 0) {
         fullscreenQuad(fade_tex, 0.0, 0.0);
     }
+}
+
+u8* readFileMem(const char* fileName, u32* fileSize, bool linear) {
+    FILE *fileptr;
+    u8 *buffer;
+    long filelen;
+
+    fileptr = fopen(fileName, "rb");
+    fseek(fileptr, 0, SEEK_END);
+    *fileSize = ftell(fileptr);
+    rewind(fileptr);
+    
+    if(linear) {
+        buffer = (u8*)malloc((1 + (*fileSize))*sizeof(u8));
+    }
+    else {
+        buffer = (u8*)malloc((1 + (*fileSize))*sizeof(u8));
+    }
+    fread(buffer, *fileSize, 1, fileptr);
+    fclose(fileptr);
+    return(buffer);
 }

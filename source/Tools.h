@@ -35,6 +35,8 @@
 #define min(a,b) (((a)<(b))?(a):(b))
 #define max(a,b) (((a)>(b))?(a):(b))
 
+#include "TextureHack.h"
+
 #include "Rocket/sync.h"
 struct sync_device *rocket;
 
@@ -323,5 +325,7 @@ extern float readPerfCounter(int idx);
 
 extern bool loadTex3DS(C3D_Tex* tex, C3D_TexCube* cube, const char* path);
 extern bool loadTex3DSMem(C3D_Tex* tex, C3D_TexCube* cube, const void* data, size_t size);
+
+extern u8* readFileMem(const char* fileName, u32* fileSize, bool linear);
 
 #endif

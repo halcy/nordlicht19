@@ -13,10 +13,6 @@
 #include "ModelSpaceStation.h"
 #include "ModelSun.h"
 
-#include "stars_bin.h"
-#include "tex_spacestation_color_bin.h"
-#include "tex_spacestation_normals_bin.h"
-
 // Shader / textures
 static C3D_AttrInfo* attrInfo;
 
@@ -58,7 +54,7 @@ static C3D_ProcTexLut pt_noise;
 static C3D_ProcTexColorLut pt_clr;
 
 // VBOs
-#define VBO_SIZE 70000
+#define VBO_SIZE 100000
 static vertex2* vbo;
 static C3D_BufInfo* bufInfo;
 
@@ -106,16 +102,16 @@ void effectSun2Init() {
     skyboxVertCount = buildCube2(&vbo[(numFacesSpaceStation + numFacesSun) * 3], vec3(0, 0, 0), 29500.0, 0.0, 0.0);
     
     // Load texture for the skybox
-    loadTex3DSMem(&skybox_tex, &skybox_cube, stars_bin, stars_bin_size);
+    loadTex3DS(&skybox_tex, &skybox_cube, "romfs:/stars.bin");
     C3D_TexSetFilter(&skybox_tex, GPU_LINEAR, GPU_LINEAR);
     C3D_TexSetWrap(&skybox_tex, GPU_CLAMP_TO_EDGE, GPU_CLAMP_TO_EDGE);       
     
     // Load textures for station
-    loadTex3DSMem(&station_tex_col, NULL, tex_spacestation_color_bin, tex_spacestation_color_bin_size);
+    loadTex3DS(&station_tex_col, NULL, "romfs:/tex_spacestation_color.bin");
     C3D_TexSetFilter(&station_tex_col, GPU_LINEAR, GPU_NEAREST);
     C3D_TexSetWrap(&station_tex_col, GPU_CLAMP_TO_EDGE, GPU_CLAMP_TO_EDGE);    
     
-    loadTex3DSMem(&station_tex_norm, NULL, tex_spacestation_normals_bin, tex_spacestation_normals_bin_size);
+    loadTex3DS(&station_tex_norm, NULL, "romfs:/tex_spacestation_normals.bin");
     C3D_TexSetFilter(&station_tex_norm, GPU_LINEAR, GPU_NEAREST);
     C3D_TexSetWrap(&station_tex_norm, GPU_CLAMP_TO_EDGE, GPU_CLAMP_TO_EDGE);
     
@@ -312,15 +308,7 @@ void effectSun2Render(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRigh
     //gspWaitForPPF();
 }
 
-void effectSun2Exit() {
-    gspWaitForPPF();
-    
-    // Free textures
-    printf("tex free\n");
-    C3D_TexDelete(&skybox_tex);
-    C3D_TexDelete(&station_tex_col);
-    C3D_TexDelete(&station_tex_norm);
-    
+void effectSun2Exit() {        
     // Free allocated memory
     printf("vbo free\n");
     linearFree(vbo);
@@ -332,6 +320,12 @@ void effectSun2Exit() {
     
     shaderProgramFree(&shaderProgramSkybox);
     DVLB_Free(vshader_skybox_dvlb);
+    
+    // Free textures
+    printf("tex free\n");
+    C3D_TexDelete(&skybox_tex);
+    C3D_TexDelete(&station_tex_col);
+    C3D_TexDelete(&station_tex_norm);
     
     printf("the problem is outside of this actually\n");
 }

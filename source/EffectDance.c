@@ -67,7 +67,12 @@ const struct sync_track* sync_stars;
 #define NUM_STARS 100
 static vec2_t starPos[NUM_STARS];
 
+FILE *danceFile;
+
 void effectDanceInit() {
+    // Load a dance
+    danceFile = fopen("romfs:/dance_anim.bin", "rb");
+        
     // initialize everything here
     sync_zoom = sync_get_track(rocket, "guy.zoom");
     sync_rotate = sync_get_track(rocket, "guy.rotate");
@@ -240,13 +245,16 @@ void effectDanceDraw(float iod, float row) {
     //C3D_AlphaBlend(GPU_BLEND_ADD, GPU_BLEND_ADD, GPU_ONE, GPU_ONE, GPU_ONE, GPU_ONE);
     
     // Bones to shader TODO can we not do this twice? probably unvaoivable though unless I want to reverse draw order for right eye
-    int frame = (int)sync_movement_val;
+    int frame = min(max(0, (int)sync_movement_val), motionGuyNumVerts);
     for(int i = 0; i < 21; i++) {
         Mtx_Identity(&boneMat);
-        for(int j = 0; j < 4 * 3; j++) {
-            boneMat.m[j] = motionGuyAnim[frame][i][j];
-        }
-        
+        /*for(int j = 0; j < 4 * 3; j++) {
+            
+            // boneMat.m[j] = motionGuyAnim[frame][i][j];
+        }*/
+        fseek(danceFile, ((frame * 21 * 12) + (i * 12)) * sizeof(float), SEEK_SET);
+        fread(boneMat.m, 12 * sizeof(float), 1, danceFile);
+//         printf("%f %f %f %f\n", boneMat.m[0], boneMat.m[1], boneMat.m[2], boneMat.m[3]);
         C3D_FVUnifMtx3x4(GPU_VERTEX_SHADER, uLocBone[i], &boneMat);
     }
     
@@ -304,14 +312,7 @@ void effectDanceRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRig
 }
 
 void effectDanceExit() {
-    gspWaitForPPF();
-    
-    // Free textures
-    printf("tex free\n");
-    C3D_TexDelete(&plat_tex);
-    C3D_TexDelete(&guy_tex);
-    C3D_TexDelete(&screen_tex);
-    
+//     gspWaitForPPF();
     // Free allocated memory
     printf("vbo free\n");
     linearFree(vbo);
@@ -324,6 +325,14 @@ void effectDanceExit() {
     
     shaderProgramFree(&shaderProgramSkybox);
     DVLB_Free(vshader_skybox_dvlb);
+    
+    // Free textures
+    printf("tex free\n");
+    C3D_TexDelete(&plat_tex);
+    C3D_TexDelete(&guy_tex);
+    C3D_TexDelete(&screen_tex);
+    
+    fclose(danceFile);
     
     printf("the problem is outside of this actually\n");
 }

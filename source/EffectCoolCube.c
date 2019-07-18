@@ -12,11 +12,6 @@
 
 #include "ModelCoolCube.h"
 
-#include "stars_red_bin.h"
-#include "stars_bin.h"
-#include "tex_spacestation_color_bin.h"
-#include "tex_spacestation_normals_bin.h"
-
 #include "Font.h"
 #include "MonoFont.h"
 
@@ -79,7 +74,7 @@ static const C3D_Material lightMaterial = {
 };
 
 // VBOs
-#define VBO_SIZE 25000
+#define VBO_SIZE 35000
 static vertex2* vbo;
 static C3D_BufInfo* bufInfo;
 
@@ -127,7 +122,7 @@ void effectCoolCubeInit() {
     cometsStart = (numFacesCoolCube) * 3 + skyboxVertCount;
     
     // Load texture for the skybox
-    loadTex3DSMem(&skybox_tex, &skybox_cube, stars_red_bin, stars_red_bin_size);
+    loadTex3DS(&skybox_tex, &skybox_cube, "romfs:/stars_red.bin");
     C3D_TexSetFilter(&skybox_tex, GPU_LINEAR, GPU_LINEAR);
     C3D_TexSetWrap(&skybox_tex, GPU_CLAMP_TO_EDGE, GPU_CLAMP_TO_EDGE);
     
