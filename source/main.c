@@ -10,13 +10,20 @@ static Pixel* fadePixels;
 static Bitmap fadeBitmap;
 float fadeVal;
 
-u32 music_bin_size;
 u8* music_bin;
+u32 music_bin_size;
+
+// u8* music_bin_play;
+// u32 music_bin_play_block;
+// 
+// u8* music_bin_preload;
+// u32 music_bin_preload_block;
 
 #define min(a, b) (((a)<(b))?(a):(b))
 #define max(a, b) (((a)>(b))?(a):(b))
 
-#define AUDIO_BUFSIZE 256
+#define AUDIO_BUFSIZE 512
+#define AUDIO_BLOCKSIZE 16384
 
 #define SONG_BPM 173.0
 #define SONG_BPS (SONG_BPM / 60.0)
@@ -84,6 +91,7 @@ int connect_rocket() {
 }
 
 FILE *audioFile;
+u8 audioTempBuf[AUDIO_BUFSIZE * 4];
 void audio_callback(void* ignored) {
     ignored;
     if(wave_buffer[fill_buffer].status == NDSP_WBUF_DONE && (sample_pos + AUDIO_BUFSIZE) * sizeof(int16_t) < music_bin_size) {
@@ -91,14 +99,47 @@ void audio_callback(void* ignored) {
             sample_pos += AUDIO_BUFSIZE;
         }
         uint8_t *dest = (uint8_t*)wave_buffer[fill_buffer].data_pcm16;
-        fseek(audioFile, (sample_pos - AUDIO_BUFSIZE) * sizeof(int16_t), SEEK_SET);
-        fread(dest, AUDIO_BUFSIZE * sizeof(int16_t), 1, audioFile);
-        //memcpy(dest, &music_bin[(sample_pos - AUDIO_BUFSIZE) * sizeof(int16_t)], AUDIO_BUFSIZE * sizeof(int16_t));
+//         memcpy(dest, audioTempBuf, AUDIO_BUFSIZE * sizeof(int16_t));
+//         wantAudioData = 1;
+//         int block_id = (sample_pos - AUDIO_BUFSIZE) / AUDIO_BLOCKSIZE;
+//         if(block_id != music_bin_play_block) {
+// //             printf("Copying audio %d != %d @ %d\n", block_id, music_bin_play_block, sample_pos);
+//             memcpy(music_bin_play, music_bin_preload, AUDIO_BLOCKSIZE * sizeof(int16_t));
+//             music_bin_play_block = block_id;
+//         }
+//         int play_pos = (sample_pos - AUDIO_BUFSIZE) % AUDIO_BLOCKSIZE;
+        
+//         memcpy(dest, &music_bin_play[play_pos * sizeof(int16_t)], AUDIO_BUFSIZE * sizeof(int16_t));
+        memcpy(dest, &music_bin[(sample_pos - AUDIO_BUFSIZE) * sizeof(int16_t)], AUDIO_BUFSIZE * sizeof(int16_t));        
         DSP_FlushDataCache(dest, AUDIO_BUFSIZE * sizeof(int16_t));
         ndspChnWaveBufAdd(0, &wave_buffer[fill_buffer]);
         fill_buffer = !fill_buffer;
     }
 }
+
+#include <vshader_normalmapping_shbin.h>
+#include <vshader_skybox_shbin.h>
+#include <vshader_shbin.h>
+#include <vshader_bones_shbin.h>
+
+DVLB_s* vshader_dvlb;
+DVLB_s* vshader_normalmapping_dvlb;
+DVLB_s* vshader_bones_dvlb;
+DVLB_s* vshader_skybox_dvlb;
+shaderProgram_s shaderProgram;
+shaderProgram_s shaderProgramNormalMapping;
+shaderProgram_s shaderProgramBones;
+shaderProgram_s shaderProgramSkybox;
+
+// void music_preload(int block_id) {
+//     if(block_id != music_bin_preload_block) {
+//         int load_pos = block_id * AUDIO_BLOCKSIZE;
+// //         printf("Preloading block %d != %d @ %d\n", block_id, music_bin_preload_block, load_pos);
+//         fseek(audioFile, load_pos * sizeof(int16_t), SEEK_SET);
+//         fread(music_bin_preload, AUDIO_BLOCKSIZE * sizeof(int16_t), 1, audioFile);
+//         music_bin_preload_block = block_id;
+//     }
+// }
 
 int main() {    
     bool DUMPFRAMES = false;
@@ -149,14 +190,19 @@ int main() {
     romfsInit();
     
     // Open music
-//     printf("Music load ----- %d %d %d\n", linearSpaceFree(), vramSpaceFree(), mappableSpaceFree());
-//     music_bin = readFileMem(, &music_bin_size, false);
+    printf("Music load ----- %d %d %d\n", linearSpaceFree(), vramSpaceFree(), mappableSpaceFree());
+    music_bin = readFileMem("romfs:/music2.bin", &music_bin_size, false);
 
-    audioFile = fopen("romfs:/music2.bin", "rb");
-    fseek(audioFile, 0, SEEK_END);
-    music_bin_size = ftell(audioFile);
-    rewind(audioFile);
+//     audioFile = fopen("romfs:/music2.bin", "rb");
+//     fseek(audioFile, 0, SEEK_END);
+//     music_bin_size = ftell(audioFile);
+//     rewind(audioFile);
+//     
+//     music_bin_play = (u8*)malloc(65536 * sizeof(int16_t));
+//     music_bin_preload = (u8*)malloc(65536 * sizeof(int16_t));
+//     music_preload(0);
     
+//     
     // Load textures
 //     printf("Tex load ----- %d %d %d\n", linearSpaceFree(), vramSpaceFree(), mappableSpaceFree());
 //     stars_bin = readFileMem("romfs:/stars.bin", &stars_bin_size, false);
@@ -176,6 +222,25 @@ int main() {
     if(connect_rocket()) {
         return(0);
     }
+    
+    // Load shaders
+    vshader_dvlb = DVLB_ParseFile((u32*)vshader_shbin, vshader_shbin_size);
+    shaderProgramInit(&shaderProgram);
+    shaderProgramSetVsh(&shaderProgram, &vshader_dvlb->DVLE[0]);
+
+    vshader_skybox_dvlb = DVLB_ParseFile((u32*)vshader_skybox_shbin, vshader_skybox_shbin_size);
+    shaderProgramInit(&shaderProgramSkybox);
+    shaderProgramSetVsh(&shaderProgramSkybox, &vshader_skybox_dvlb->DVLE[0]);
+
+    vshader_bones_dvlb = DVLB_ParseFile((u32*)vshader_bones_shbin, vshader_bones_shbin_size);
+    shaderProgramInit(&shaderProgramBones);
+    shaderProgramSetVsh(&shaderProgramBones, &vshader_bones_dvlb->DVLE[0]);
+    
+    vshader_normalmapping_dvlb = DVLB_ParseFile((u32*)vshader_normalmapping_shbin, vshader_normalmapping_shbin_size);
+    shaderProgramInit(&shaderProgramNormalMapping);
+    shaderProgramSetVsh(&shaderProgramNormalMapping, &vshader_normalmapping_dvlb->DVLE[0]);
+    
+    printf("All loaded");
     
     // Sound on
     ndspInit();
@@ -232,6 +297,14 @@ int main() {
     
     int fc = 0;
     while (aptMainLoop()) {
+//         music_preload(music_bin_play_block + 1);
+//         // Refill audio buffer
+//         if(wantAudioData == 1) {
+//             fseek(audioFile, (sample_pos - AUDIO_BUFSIZE) * sizeof(int16_t), SEEK_SET);
+//             fread(audioTempBuf, AUDIO_BUFSIZE * sizeof(int16_t), 1, audioFile);
+//             wantAudioData = 0;
+//         }
+        
         if(!DUMPFRAMES) {
             row = audio_get_row();
         }
@@ -251,12 +324,16 @@ int main() {
 //         printf("----- %d %d %d\n", linearSpaceFree(), vramSpaceFree(), mappableSpaceFree());
 #ifndef DEV_MODE
         if(new_effect != -1 && new_effect != current_effect) {
+//             gspWaitForP3D();
+//             gspWaitForPPF();
             printf("EFFECT %d EXIT\n", current_effect);
             effect_list[current_effect].exit();
             printf("----- %d %d %d\n", linearSpaceFree(), vramSpaceFree(), mappableSpaceFree());
             current_effect = new_effect;
+//             waitForA(); 
             printf("EFFECT %d INIT\n", current_effect);
             effect_list[current_effect].init();
+//             waitForA(); 
         }
 #endif
 

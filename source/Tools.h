@@ -327,5 +327,6 @@ extern bool loadTex3DS(C3D_Tex* tex, C3D_TexCube* cube, const char* path);
 extern bool loadTex3DSMem(C3D_Tex* tex, C3D_TexCube* cube, const void* data, size_t size);
 
 extern u8* readFileMem(const char* fileName, u32* fileSize, bool linear);
+extern void waitForA();
 
 #endif

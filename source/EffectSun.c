@@ -7,13 +7,11 @@
 #include <math.h>
 
 #include "Tools.h"
-#include <vshader_shbin.h>
-#include <vshader_skybox_shbin.h>
 
 #include "MarchingCubes.h"
 
-#define MAX_METABALL_VERTS 20000
-#define MAX_STATIC_VERTS 10000
+#define MAX_METABALL_VERTS 70000
+#define MAX_STATIC_VERTS 20000
 #define GRID_SIZE 20
 #define CELL_SIZE ((0.05 * 32) / GRID_SIZE)
 
@@ -26,6 +24,22 @@
 #define CENT_DIFF(f, c, d, t) vec3(f(c.x - d, c.y, c.z, t) - f(c.x + d, c.y, c.z, t), f(c.x, c.y - d, c.z, t) - f(c.x, c.y + d, c.z, t), f(c.x, c.y, c.z - d, t) - f(c.x, c.y, c.z + d, t))
 
 #include "SpaceRoom.h"
+
+// int CELL(int x, int y, int z) {
+//     if(x < 0 || x >= GRID_SIZE) {
+//         printf("PROBLEM! x y z = %d %d %d\n", x, y, z);
+//         waitForA();
+//     }
+//     if(y < 0 || y >= GRID_SIZE) {
+//         printf("PROBLEM! x y z = %d %d %d\n", x, y, z);
+//         waitForA();
+//     }
+//     if(z < 0 || z >= GRID_SIZE) {
+//         printf("PROBLEM! x y z = %d %d %d\n", x, y, z);
+//         waitForA();
+//     }
+//     return ((z) + (y) * (GRID_SIZE) + (x) * (GRID_SIZE * GRID_SIZE));
+// }
 
 // Sync
 const struct sync_track* sync_anim_t;
@@ -51,14 +65,10 @@ int* marchingCubesMarkGrid;
 int marchingCubesMarkNb; 
 
 // Shader / textures
-static DVLB_s* vshader_dvlb;
-static DVLB_s* vshader_skybox_dvlb;
-static shaderProgram_s shaderProgram;
-static shaderProgram_s shaderProgramSkybox;
-
 static int uLocProjection;
 static int uLocModelview;
 static int uLocProjectionSkybox;
+static int uLocModelviewSkybox;
 
 static C3D_Tex skybox_tex;
 static C3D_TexCube skybox_cube;
@@ -103,25 +113,21 @@ void effectSunInit() {
     sync_rotate = sync_get_track(rocket, "metaroom.cam_rot");
     sync_bright = sync_get_track(rocket, "metaroom.bright");
     sync_build  = sync_get_track(rocket, "metaroom.build");
+//     printf("Begin\n");
+//     waitForA(); 
     
     // Set up "normal 3D rendering" shader and get uniform locations
-    vshader_skybox_dvlb = DVLB_ParseFile((u32*)vshader_skybox_shbin, vshader_skybox_shbin_size);
-    vshader_dvlb = DVLB_ParseFile((u32*)vshader_shbin, vshader_shbin_size);
-    
-    shaderProgramInit(&shaderProgram);
-    shaderProgramSetVsh(&shaderProgram, &vshader_dvlb->DVLE[0]);
-    
     C3D_BindProgram(&shaderProgram);
     uLocProjection = shaderInstanceGetUniformLocation(shaderProgram.vertexShader, "projection");
     uLocModelview = shaderInstanceGetUniformLocation(shaderProgram.vertexShader, "modelView");
     
-    shaderProgramInit(&shaderProgramSkybox);
-    shaderProgramSetVsh(&shaderProgramSkybox, &vshader_skybox_dvlb->DVLE[0]);
-    
     C3D_BindProgram(&shaderProgramSkybox);
     uLocProjectionSkybox = shaderInstanceGetUniformLocation(shaderProgramSkybox.vertexShader, "projection");
+    uLocModelviewSkybox = shaderInstanceGetUniformLocation(shaderProgramSkybox.vertexShader, "modelView");
     
     // Allocate VBOs
+//     printf("Lin Alloc");
+//     waitForA();
     metaballVBO = (vertex*)linearAlloc(sizeof(vertex) * (MAX_METABALL_VERTS + MAX_STATIC_VERTS));
     
     metaballBufInfo = C3D_GetBufInfo();
@@ -129,11 +135,22 @@ void effectSunInit() {
     BufInfo_Add(metaballBufInfo, (void*)metaballVBO, sizeof(vertex), 3, 0x210);
 //     printf("A");
     // Allocate grid
-    marchingCubesGrid = (float*)linearAlloc(2 * GRID_SIZE * GRID_SIZE * GRID_SIZE * sizeof(float));
-    marchingCubesNormals = (vec3_t*)linearAlloc(2 * GRID_SIZE * GRID_SIZE * GRID_SIZE * sizeof(vec3_t));
-    marchingCubesMarkGrid = (int*)linearAlloc(2 * GRID_SIZE * GRID_SIZE * GRID_SIZE * sizeof(int));
-    marchingCubesQueue = (gridloc*)linearAlloc(2 * GRID_SIZE * GRID_SIZE * GRID_SIZE * sizeof(gridloc));
+//     printf("Alloc 1");
+//     waitForA();
+    marchingCubesGrid = (float*)malloc(GRID_SIZE * GRID_SIZE * GRID_SIZE * sizeof(float));
+//     printf("Alloc 2");
+//     waitForA();
+    marchingCubesNormals = (vec3_t*)malloc(GRID_SIZE * GRID_SIZE * GRID_SIZE * sizeof(vec3_t));
+//     printf("Alloc 3");
+//     waitForA();
+    marchingCubesMarkGrid = (int*)malloc(GRID_SIZE * GRID_SIZE * GRID_SIZE * sizeof(int));
+/*    printf("Alloc 4");
+    waitForA();  */  
+    marchingCubesQueue = (gridloc*)malloc(GRID_SIZE * GRID_SIZE * GRID_SIZE * sizeof(gridloc));
     marchingCubesMarkNb = 0;
+    
+    printf("%x %x %x %x\n", marchingCubesGrid, marchingCubesNormals, marchingCubesMarkGrid, marchingCubesQueue);
+    printf("----- %d %d %d\n", linearSpaceFree(), vramSpaceFree(), mappableSpaceFree());
 //     printf("B");
     // Load statics
     loadObject2to1(numFacesSpaceRoom, facesSpaceRoom, verticesSpaceRoom, normalsSpaceRoom, texcoordsSpaceRoom, &metaballVBO[MAX_METABALL_VERTS]);
@@ -232,7 +249,7 @@ void effectSunUpdate(float row) {
     // How to get a value from a sync track:
     float anim_t = sync_get_val(sync_anim_t, row);
     float anim_r = sync_get_val(sync_anim_r, row);
-    int anim_w = (int)sync_get_val(sync_anim_w, row);
+    int anim_w = min((int)sync_get_val(sync_anim_w, row), GRID_SIZE);
     int field = (int)sync_get_val(sync_anim_f, row);
     int build_max = (int)sync_get_val(sync_build, row);
     
@@ -294,9 +311,9 @@ void effectSunUpdate(float row) {
     startPerfCounter(2);
     //printf("died BEFORE normals\n");
     // Set normals for grid (TODO excluding last layer - that okay? probably is - just choose fields wisely)
-    for(int x = 0; x < GRID_SIZE - 1; x++) {
-        for(int y = 0; y < GRID_SIZE - 1; y++) {
-            for(int z = 0; z < GRID_SIZE - 1; z++) {
+    for(int x = 0; x < GRID_SIZE - 2; x++) {
+        for(int y = 0; y < GRID_SIZE - 2; y++) {
+            for(int z = 0; z < GRID_SIZE - 2; z++) {
                 vec3_t coords = COORDS(x, y, z);
                 float cent_val = marchingCubesGrid[CELL(x, y, z)];
                 vec3_t normal = vec3(
@@ -420,7 +437,9 @@ void effectSunUpdate(float row) {
                 }
             }
         }
+        maxQueueSize = max(queuePos, maxQueueSize);
     }
+    
 //     printf("died AFTER marchingcubes (vc %d %d %d %d)\n", metaballVertCount, queuePos, queuePosProc, anim_w);
     stopPerfCounter(3);
 }
@@ -430,12 +449,23 @@ void effectSunDraw(float iod, float row) {
     // Projection matrix
     C3D_Mtx projection;
     Mtx_PerspStereoTilt(&projection, 65.0f * M_PI / 180.0f, 400.0f / 240.0f, 0.2f, 500.0f, iod, 2.0f, false);
+    
+    // Compute MV matrix, uniforms to shader
+    C3D_Mtx modelview;
+    Mtx_Identity(&modelview);
+    
+    float rotPathVal = sync_get_val(sync_rotate, row) * 0.1;
+    Mtx_Translate(&modelview, 0.0, 0.0, -2.8, true);
+    Mtx_RotateY(&modelview, rotPathVal, true);
+    Mtx_RotateZ(&modelview, sin(rotPathVal * 0.1) * 0.1, true);
+    
     //printf("Died before skybox");
     // Skybox shader
     C3D_BindProgram(&shaderProgramSkybox);
     
     // Uniforms to shader
     C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLocProjectionSkybox, &projection);
+    C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLocModelviewSkybox, &modelview);
     
     // Passthrough texenv
     C3D_TexEnv* env = C3D_GetTexEnv(0);
@@ -476,15 +506,6 @@ void effectSunDraw(float iod, float row) {
     C3D_TexEnvSrc(env, C3D_RGB, GPU_FRAGMENT_PRIMARY_COLOR, GPU_FRAGMENT_SECONDARY_COLOR, 0);
     C3D_TexEnvOpRgb(env, 0, 0, 0);
     C3D_TexEnvFunc(env, C3D_RGB, GPU_REPLACE);
-
-    // Compute MV matrix, uniforms to shader
-    C3D_Mtx modelview;
-    Mtx_Identity(&modelview);
-    
-    float rotPathVal = sync_get_val(sync_rotate, row) * 0.1;
-    Mtx_Translate(&modelview, 0.0, 0.0, -2.8, true);
-    Mtx_RotateY(&modelview, rotPathVal, true);
-    Mtx_RotateZ(&modelview, sin(rotPathVal * 0.1) * 0.1, true);
     
     C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLocProjection, &projection);
     C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLocModelview,  &modelview);
@@ -552,7 +573,7 @@ void effectSunRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRight
     AttrInfo_AddLoader(attrInfo, 2, GPU_FLOAT, 3); // v2 = normal        
     //printf("C");
     // Textures
-    C3D_TexBind(0, 0);    
+//     C3D_TexBind(0, 0);    
     //printf("D");
     stopPerfCounter(0);
     //printf("E\n");
@@ -593,21 +614,34 @@ void effectSunRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRight
 }
 
 void effectSunExit() {
+//     gspWaitForP3D();
+//     gspWaitForPPF();
+// 
+    printf("Free tex\n");
     // Free textures
     C3D_TexDelete(&skybox_tex);
     C3D_TexDelete(&room_tex);
-    
+//     printf("A\n");
+//     waitForA();
     // Free allocated memory
     linearFree(metaballVBO);
-    linearFree(marchingCubesGrid);
-    linearFree(marchingCubesNormals);
-    linearFree(marchingCubesMarkGrid);
-    linearFree(marchingCubesQueue);
+//     printf("B\n");
+//     waitForA();
     
-    // Free the shaders
-    shaderProgramFree(&shaderProgram);
-    DVLB_Free(vshader_dvlb);
+    free(marchingCubesGrid);
+//     printf("C\n");
+//     waitForA();
     
-    shaderProgramFree(&shaderProgramSkybox);
-    DVLB_Free(vshader_skybox_dvlb);
+    free(marchingCubesNormals);
+//     printf("D\n");
+//     waitForA();
+    
+    free(marchingCubesMarkGrid);
+//     printf("E\n");
+//     waitForA();
+    
+    free(marchingCubesQueue);
+//     printf("F\n");
+//     waitForA();
+    
 }

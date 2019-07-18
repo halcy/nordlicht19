@@ -7,13 +7,10 @@
 #include <math.h>
 
 #include "Tools.h"
-#include <vshader_bones_shbin.h>
 #include "Perlin.h"
 
 #include "ModelTunnel.h"
 
-static DVLB_s* vshader_dvlb;
-static shaderProgram_s program;
 static C3D_AttrInfo* attrInfo;
 
 static int uLocProjection;
@@ -47,7 +44,7 @@ static int uLocBone[21];
 
 static vertex_rigged* vbo;
 int32_t vertCount;
-#define MAX_VERTS 60000
+#define MAX_VERTS 35000
 
 // Powertunnel
 void effectTunnelInit() {
@@ -57,11 +54,6 @@ void effectTunnelInit() {
     sync_laser_seed = sync_get_track(rocket, "tunnel.lseed");
     sync_laser_start = sync_get_track(rocket, "tunnel.lstart");
     sync_laser_end = sync_get_track(rocket, "tunnel.lend");
-    
-    // Load default shader
-    vshader_dvlb = DVLB_ParseFile((u32*)vshader_bones_shbin, vshader_bones_shbin_size);
-    shaderProgramInit(&program);
-    shaderProgramSetVsh(&program, &vshader_dvlb->DVLE[0]);
     
     // Create the VBO
     vbo = (vertex_rigged*)linearAlloc(sizeof(vertex_rigged) * MAX_VERTS);
@@ -76,7 +68,7 @@ void effectTunnelInit() {
     char boneName[255];
     for(int i = 0; i < 21; i++) {
         sprintf(boneName, "bone%02d", i);
-        uLocBone[i] = shaderInstanceGetUniformLocation(program.vertexShader, boneName);
+        uLocBone[i] = shaderInstanceGetUniformLocation(shaderProgramBones.vertexShader, boneName);
     }
     
     loadTex3DS(&tunnelTex, NULL, "romfs:/tex_tunnel.bin");
@@ -89,12 +81,12 @@ void effectTunnelInit() {
 }
 
 static void effectTunnelDraw(float iod, float row) {
-    C3D_BindProgram(&program);
+    C3D_BindProgram(&shaderProgramBones);
     C3D_CullFace(GPU_CULL_BACK_CCW);
     
     // Get the location of the uniforms
-    uLocProjection = shaderInstanceGetUniformLocation(program.vertexShader, "projection");
-    uLocModelview = shaderInstanceGetUniformLocation(program.vertexShader, "modelView");
+    uLocProjection = shaderInstanceGetUniformLocation(shaderProgramBones.vertexShader, "projection");
+    uLocModelview = shaderInstanceGetUniformLocation(shaderProgramBones.vertexShader, "modelView");
 
     // Compute the projection matrix
     Mtx_PerspStereoTilt(&projection, 70.0f*M_PI/180.0f, 400.0f/240.0f, 0.2f, 6000.0f, iod, 2.0f, false);
@@ -191,7 +183,6 @@ static void effectTunnelDraw(float iod, float row) {
         C3D_DrawArrays(GPU_TRIANGLES, 0, tunnelNumVerts);
     }
     
-    // TODO LASERS
     // Bind a texture
     C3D_TexBind(0, &tunnelTexGlow);
     
@@ -318,7 +309,8 @@ void effectTunnelRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRi
     
     // Actual scene
     effectTunnelDraw(-iod, row);
-    
+    C3D_AlphaBlend(GPU_BLEND_ADD, GPU_BLEND_ADD, GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA);
+    C3D_CullFace(GPU_CULL_BACK_CCW);
     fade();
     
     if(iod > 0.0) {
@@ -327,8 +319,9 @@ void effectTunnelRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRi
         C3D_RenderTargetClear(targetRight, C3D_CLEAR_ALL, 0x68B0D8FF, 0);
         
         // Actual scene
-        effectTunnelDraw(iod, row);
-
+//         effectTunnelDraw(iod, row);
+        C3D_AlphaBlend(GPU_BLEND_ADD, GPU_BLEND_ADD, GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA);
+        C3D_CullFace(GPU_CULL_BACK_CCW);
         fade();
     }
     
@@ -336,14 +329,13 @@ void effectTunnelRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRi
 }
 
 void effectTunnelExit() {
+//     gspWaitForP3D();
+//     gspWaitForPPF();
+//     
     // Free the texture
     C3D_TexDelete(&tunnelTex);
     C3D_TexDelete(&tunnelTexGlow);
     
     // Free vertices
     linearFree(vbo);
-    
-    // Free the shader program
-    shaderProgramFree(&program);
-    DVLB_Free(vshader_dvlb);
 }

@@ -400,7 +400,7 @@ u8* readFileMem(const char* fileName, u32* fileSize, bool linear) {
     rewind(fileptr);
     
     if(linear) {
-        buffer = (u8*)malloc((1 + (*fileSize))*sizeof(u8));
+        buffer = (u8*)linearAlloc((1 + (*fileSize))*sizeof(u8));
     }
     else {
         buffer = (u8*)malloc((1 + (*fileSize))*sizeof(u8));
@@ -408,4 +408,22 @@ u8* readFileMem(const char* fileName, u32* fileSize, bool linear) {
     fread(buffer, *fileSize, 1, fileptr);
     fclose(fileptr);
     return(buffer);
+}
+
+void waitForA() {
+//     while(1) {
+        hidScanInput();
+//         u32 kDown = hidKeysDown();
+//         if (kDown & KEY_A) {
+//             break; // break in order to return to hbmenu
+//         }
+//     }
+//     
+//     while(1) {
+        hidScanInput();
+//         u32 kDown = hidKeysDown();
+//         if (kDown & KEY_B) {
+//             break; // break in order to return to hbmenu
+//         }
+//     }
 }

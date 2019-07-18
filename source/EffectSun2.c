@@ -7,19 +7,12 @@
 #include <math.h>
 
 #include "Tools.h"
-#include <vshader_normalmapping_shbin.h>
-#include <vshader_skybox_shbin.h>
 
 #include "ModelSpaceStation.h"
 #include "ModelSun.h"
 
 // Shader / textures
 static C3D_AttrInfo* attrInfo;
-
-static DVLB_s* vshader_dvlb;
-static DVLB_s* vshader_skybox_dvlb;
-static shaderProgram_s shaderProgram;
-static shaderProgram_s shaderProgramSkybox;
 
 static int uLocProjection;
 static int uLocModelview;
@@ -61,6 +54,7 @@ static C3D_BufInfo* bufInfo;
 // Sync
 const struct sync_track* sync_zoom;
 const struct sync_track* sync_rotate;
+const struct sync_track* sync_rotate2;
 const struct sync_track* sync_noise;
 const struct sync_track* sync_fov;
 
@@ -68,22 +62,14 @@ void effectSun2Init() {
     // initialize everything here
     sync_zoom = sync_get_track(rocket, "sun2.zoom");
     sync_rotate = sync_get_track(rocket, "sun2.rotate");
+    sync_rotate2 = sync_get_track(rocket, "sun2.rotate2");
     sync_noise = sync_get_track(rocket, "sun2.noise");
     sync_fov = sync_get_track(rocket, "sun2.fov");
     
     // Set up "normal 3D rendering" shader and get uniform locations
-    vshader_skybox_dvlb = DVLB_ParseFile((u32*)vshader_skybox_shbin, vshader_skybox_shbin_size);
-    vshader_dvlb = DVLB_ParseFile((u32*)vshader_normalmapping_shbin, vshader_normalmapping_shbin_size);
-    
-    shaderProgramInit(&shaderProgram);
-    shaderProgramSetVsh(&shaderProgram, &vshader_dvlb->DVLE[0]);
-    
-    C3D_BindProgram(&shaderProgram);
-    uLocProjection = shaderInstanceGetUniformLocation(shaderProgram.vertexShader, "projection");
-    uLocModelview = shaderInstanceGetUniformLocation(shaderProgram.vertexShader, "modelView");
-    
-    shaderProgramInit(&shaderProgramSkybox);
-    shaderProgramSetVsh(&shaderProgramSkybox, &vshader_skybox_dvlb->DVLE[0]);
+    C3D_BindProgram(&shaderProgramNormalMapping);
+    uLocProjection = shaderInstanceGetUniformLocation(shaderProgramNormalMapping.vertexShader, "projection");
+    uLocModelview = shaderInstanceGetUniformLocation(shaderProgramNormalMapping.vertexShader, "modelView");
     
     C3D_BindProgram(&shaderProgramSkybox);
     uLocProjectionSkybox = shaderInstanceGetUniformLocation(shaderProgramSkybox.vertexShader, "projection");
@@ -167,6 +153,7 @@ void effectSun2Draw(float iod, float row) {
     resetShadeEnv();
     float sync_zoom_val = sync_get_val(sync_zoom, row);
     float sync_rotate_val = sync_get_val(sync_rotate, row);
+    float sync_rotate2_val = sync_get_val(sync_rotate2, row);
     float sync_noise_val = sync_get_val(sync_noise, row);
     float sync_fov_val = sync_get_val(sync_fov, row);
 
@@ -177,6 +164,7 @@ void effectSun2Draw(float iod, float row) {
     // Modelview matrix
     C3D_Mtx modelview;
     Mtx_Identity(&modelview);
+    Mtx_RotateY(&modelview, sync_rotate2_val, true);
     Mtx_Translate(&modelview, 0.0, 0.0, sync_zoom_val, true);
     Mtx_RotateY(&modelview, sync_rotate_val, true);
     
@@ -209,7 +197,7 @@ void effectSun2Draw(float iod, float row) {
     C3D_DrawArrays(GPU_TRIANGLES, (numFacesSpaceStation + numFacesSun) * 3, skyboxVertCount);
     
     // Normal drawing shader
-    C3D_BindProgram(&shaderProgram);
+    C3D_BindProgram(&shaderProgramNormalMapping);
     C3D_TexBind(0, &station_tex_col);
     C3D_TexBind(1, &station_tex_norm);
     
@@ -253,7 +241,9 @@ void effectSun2Draw(float iod, float row) {
     // Lets draw a space station
     C3D_CullFace(GPU_CULL_BACK_CCW); 
     C3D_LightEnvMaterial(&lightEnv, &lightMaterial);
-    C3D_DrawArrays(GPU_TRIANGLES, 0, numFacesSpaceStation * 3);
+    if(sync_rotate2_val < 0.1) {
+        C3D_DrawArrays(GPU_TRIANGLES, 0, numFacesSpaceStation * 3);
+    }
     
     // Proc tex update
     C3D_ProcTexNoiseCoefs(&pt, C3D_ProcTex_U, 0.125f, 200, 1.0 * 0.0001);
@@ -267,7 +257,9 @@ void effectSun2Draw(float iod, float row) {
     C3D_TexEnvFunc(env, C3D_RGB, GPU_REPLACE);
     
     // Lets draw the sun
-    C3D_DrawArrays(GPU_TRIANGLES, numFacesSpaceStation * 3, numFacesSun * 3);
+    if(sync_rotate2_val < 1.7) {
+        C3D_DrawArrays(GPU_TRIANGLES, numFacesSpaceStation * 3, numFacesSun * 3);
+    }
     
     // Bumpmapping off
     C3D_LightEnvBumpSel(&lightEnv, 0);    
@@ -308,19 +300,14 @@ void effectSun2Render(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRigh
     //gspWaitForPPF();
 }
 
-void effectSun2Exit() {        
+void effectSun2Exit() { 
+//     gspWaitForP3D();
+//     gspWaitForPPF();
+    
     // Free allocated memory
     printf("vbo free\n");
     linearFree(vbo);
 
-    // Free the shaders
-    printf("shaders free\n");
-    shaderProgramFree(&shaderProgram);
-    DVLB_Free(vshader_dvlb);
-    
-    shaderProgramFree(&shaderProgramSkybox);
-    DVLB_Free(vshader_skybox_dvlb);
-    
     // Free textures
     printf("tex free\n");
     C3D_TexDelete(&skybox_tex);

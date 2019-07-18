@@ -7,8 +7,6 @@
 #include <math.h>
 
 #include "Tools.h"
-#include <vshader_bones_shbin.h>
-#include <vshader_skybox_shbin.h>
 
 #include "ModelMotionGuy.h"
 #include "ModelPlatform.h"
@@ -16,11 +14,6 @@
 
 // Shader / textures
 static C3D_AttrInfo* attrInfo;
-
-static DVLB_s* vshader_dvlb;
-static DVLB_s* vshader_skybox_dvlb;
-static shaderProgram_s shaderProgram;
-static shaderProgram_s shaderProgramSkybox;
 
 static int uLocProjection;
 static int uLocModelview;
@@ -86,25 +79,16 @@ void effectDanceInit() {
     }
     
     // Set up "normal 3D rendering" shader and get uniform locations
-    vshader_skybox_dvlb = DVLB_ParseFile((u32*)vshader_skybox_shbin, vshader_skybox_shbin_size);
-    vshader_dvlb = DVLB_ParseFile((u32*)vshader_bones_shbin, vshader_bones_shbin_size);
-    
-    shaderProgramInit(&shaderProgram);
-    shaderProgramSetVsh(&shaderProgram, &vshader_dvlb->DVLE[0]);
-    
-    C3D_BindProgram(&shaderProgram);
-    uLocProjection = shaderInstanceGetUniformLocation(shaderProgram.vertexShader, "projection");
-    uLocModelview = shaderInstanceGetUniformLocation(shaderProgram.vertexShader, "modelView");
+    C3D_BindProgram(&shaderProgramBones);
+    uLocProjection = shaderInstanceGetUniformLocation(shaderProgramBones.vertexShader, "projection");
+    uLocModelview = shaderInstanceGetUniformLocation(shaderProgramBones.vertexShader, "modelView");
     
     // Bone deform locations
     char boneName[255];
     for(int i = 0; i < 21; i++) {
         sprintf(boneName, "bone%02d", i);
-        uLocBone[i] = shaderInstanceGetUniformLocation(shaderProgram.vertexShader, boneName);
+        uLocBone[i] = shaderInstanceGetUniformLocation(shaderProgramBones.vertexShader, boneName);
     }
-    
-    shaderProgramInit(&shaderProgramSkybox);
-    shaderProgramSetVsh(&shaderProgramSkybox, &vshader_skybox_dvlb->DVLE[0]);
     
     C3D_BindProgram(&shaderProgramSkybox);
     uLocProjectionSkybox = shaderInstanceGetUniformLocation(shaderProgramSkybox.vertexShader, "projection");
@@ -176,7 +160,7 @@ void effectDanceDraw(float iod, float row) {
     Mtx_RotateY(&modelviewSky, 3.0, true);
     
     // Normal drawing shader
-    C3D_BindProgram(&shaderProgram);
+    C3D_BindProgram(&shaderProgramBones);
     
     // Uniforms to shader
     C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLocProjection, &projection);
@@ -245,7 +229,7 @@ void effectDanceDraw(float iod, float row) {
     //C3D_AlphaBlend(GPU_BLEND_ADD, GPU_BLEND_ADD, GPU_ONE, GPU_ONE, GPU_ONE, GPU_ONE);
     
     // Bones to shader TODO can we not do this twice? probably unvaoivable though unless I want to reverse draw order for right eye
-    int frame = min(max(0, (int)sync_movement_val), motionGuyNumVerts);
+    int frame = min(max(0, (int)sync_movement_val), motionGuyNumFrames);
     for(int i = 0; i < 21; i++) {
         Mtx_Identity(&boneMat);
         /*for(int j = 0; j < 4 * 3; j++) {
@@ -256,7 +240,7 @@ void effectDanceDraw(float iod, float row) {
         fread(boneMat.m, 12 * sizeof(float), 1, danceFile);
 //         printf("%f %f %f %f\n", boneMat.m[0], boneMat.m[1], boneMat.m[2], boneMat.m[3]);
         C3D_FVUnifMtx3x4(GPU_VERTEX_SHADER, uLocBone[i], &boneMat);
-    }
+    } 
     
     // Draw the guy
     C3D_TexBind(0, &guy_tex);
@@ -312,19 +296,13 @@ void effectDanceRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRig
 }
 
 void effectDanceExit() {
+//     gspWaitForP3D();
 //     gspWaitForPPF();
+//     
     // Free allocated memory
     printf("vbo free\n");
     linearFree(vbo);
     linearFree(screenPixels);
-    
-    // Free the shaders
-    printf("shaders free\n");
-    shaderProgramFree(&shaderProgram);
-    DVLB_Free(vshader_dvlb);
-    
-    shaderProgramFree(&shaderProgramSkybox);
-    DVLB_Free(vshader_skybox_dvlb);
     
     // Free textures
     printf("tex free\n");
