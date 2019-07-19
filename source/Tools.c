@@ -156,6 +156,100 @@ void fullscreenQuad(C3D_Tex texture, float iod, float iodmult) {
     C3D_ImmDrawEnd();
 }
 
+void fullscreenQuadHR(C3D_Tex texture, float iod, float iodmult) {
+    ensureFlatShader();
+    
+    C3D_TexSetFilter(&texture, GPU_LINEAR, GPU_NEAREST);
+    C3D_TexBind(0, &texture);
+    
+    resetShadeEnv();
+    
+//     float preShift = iodmult > 0.0 ? 0.05 : 0.0;
+//     float textureLeft = -iod * iodmult + preShift;
+//     float textureRight = (float)SCREEN_WIDTH / (float)SCREEN_TEXTURE_WIDTH - iod * iodmult - preShift;
+//     float textureTop = 1.0 - (float)SCREEN_HEIGHT / (float)SCREEN_TEXTURE_HEIGHT + preShift * ((float)SCREEN_HEIGHT / (float)SCREEN_WIDTH);
+//     float textureBottom = 1.0 - preShift * ((float)SCREEN_HEIGHT / (float)SCREEN_WIDTH);
+//     printf("lrtb %f %f %f %f\n", textureLeft, textureRight, textureTop, textureBottom);
+    float textureLeft = 0.0;
+    float textureRight = 1.0;
+    float textureTop = (256.0 - 153.0) / 256.0;
+    float textureBottom = 1.0;
+//     printf("lrtb %f %f %f %f\n", textureLeft, textureRight, textureTop, textureBottom);
+    
+    // Turn off depth test as well as write
+    C3D_DepthTest(false, GPU_GEQUAL, GPU_WRITE_COLOR);
+    
+    // Draw a textured quad directly
+    C3D_ImmDrawBegin(GPU_TRIANGLES);
+        
+        C3D_ImmSendAttrib(0.0, 0.0, 0.5f, 0.0f);
+        C3D_ImmSendAttrib(textureLeft, textureBottom, 0.0f, 0.0f);
+
+        C3D_ImmSendAttrib(SCREEN_WIDTH, SCREEN_HEIGHT, 0.5f, 0.0f);
+        C3D_ImmSendAttrib(textureRight, textureTop, 0.0f, 0.0f);
+
+        C3D_ImmSendAttrib(SCREEN_WIDTH, 0.0, 0.5f, 0.0f);
+        C3D_ImmSendAttrib(textureRight, textureBottom, 0.0f, 0.0f);
+
+        C3D_ImmSendAttrib(0.0, 0.0, 0.5f, 0.0f);
+        C3D_ImmSendAttrib(textureLeft, textureBottom, 0.0f, 0.0f);
+
+        C3D_ImmSendAttrib(0.0, SCREEN_HEIGHT, 0.5f, 0.0f);
+        C3D_ImmSendAttrib(textureLeft, textureTop, 0.0f, 0.0f);
+
+        C3D_ImmSendAttrib(SCREEN_WIDTH, SCREEN_HEIGHT, 0.5f, 0.0f);
+        C3D_ImmSendAttrib(textureRight, textureTop, 0.0f, 0.0f);
+
+    C3D_ImmDrawEnd();
+}
+
+void fullscreenQuadHRNS(C3D_Tex texture, float iod, float iodmult) {
+    ensureFlatShader();
+    
+    C3D_TexSetFilter(&texture, GPU_LINEAR, GPU_NEAREST);
+    C3D_TexBind(0, &texture);
+    
+    resetShadeEnv();
+    
+//     float preShift = iodmult > 0.0 ? 0.05 : 0.0;
+//     float textureLeft = -iod * iodmult + preShift;
+//     float textureRight = (float)SCREEN_WIDTH / (float)SCREEN_TEXTURE_WIDTH - iod * iodmult - preShift;
+//     float textureTop = 1.0 - (float)SCREEN_HEIGHT / (float)SCREEN_TEXTURE_HEIGHT + preShift * ((float)SCREEN_HEIGHT / (float)SCREEN_WIDTH);
+//     float textureBottom = 1.0 - preShift * ((float)SCREEN_HEIGHT / (float)SCREEN_WIDTH);
+//     printf("lrtb %f %f %f %f\n", textureLeft, textureRight, textureTop, textureBottom);
+    float textureLeft = -0.18;
+    float textureRight = 1.0 + 0.18;
+    float textureTop = (256.0 - 153.0) / 256.0 - 0.18;
+    float textureBottom = 1.0 + 0.18;
+//     printf("lrtb %f %f %f %f\n", textureLeft, textureRight, textureTop, textureBottom);
+    
+    // Turn off depth test as well as write
+    C3D_DepthTest(false, GPU_GEQUAL, GPU_WRITE_COLOR);
+    
+    // Draw a textured quad directly
+    C3D_ImmDrawBegin(GPU_TRIANGLES);
+        
+        C3D_ImmSendAttrib(0.0, 0.0, 0.5f, 0.0f);
+        C3D_ImmSendAttrib(textureLeft, textureBottom, 0.0f, 0.0f);
+
+        C3D_ImmSendAttrib(SCREEN_WIDTH, SCREEN_HEIGHT, 0.5f, 0.0f);
+        C3D_ImmSendAttrib(textureRight, textureTop, 0.0f, 0.0f);
+
+        C3D_ImmSendAttrib(SCREEN_WIDTH, 0.0, 0.5f, 0.0f);
+        C3D_ImmSendAttrib(textureRight, textureBottom, 0.0f, 0.0f);
+
+        C3D_ImmSendAttrib(0.0, 0.0, 0.5f, 0.0f);
+        C3D_ImmSendAttrib(textureLeft, textureBottom, 0.0f, 0.0f);
+
+        C3D_ImmSendAttrib(0.0, SCREEN_HEIGHT, 0.5f, 0.0f);
+        C3D_ImmSendAttrib(textureLeft, textureTop, 0.0f, 0.0f);
+
+        C3D_ImmSendAttrib(SCREEN_WIDTH, SCREEN_HEIGHT, 0.5f, 0.0f);
+        C3D_ImmSendAttrib(textureRight, textureTop, 0.0f, 0.0f);
+
+    C3D_ImmDrawEnd();
+}
+
 void fullscreenQuadFlat(C3D_Tex texture) {
     ensureFlatShader();
 

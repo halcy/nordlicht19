@@ -55,10 +55,12 @@ const struct sync_track* sync_zoom;
 const struct sync_track* sync_rotate;
 const struct sync_track* sync_movement;
 const struct sync_track* sync_stars;
+const struct sync_track* sync_starmax;
 
 // Stars!
-#define NUM_STARS 100
+#define NUM_STARS 300
 static vec2_t starPos[NUM_STARS];
+float starBright[NUM_STARS];
 
 FILE *danceFile;
 
@@ -71,11 +73,13 @@ void effectDanceInit() {
     sync_rotate = sync_get_track(rocket, "guy.rotate");
     sync_movement = sync_get_track(rocket, "guy.anim");
     sync_stars = sync_get_track(rocket, "guy.stars");
+    sync_starmax = sync_get_track(rocket, "guy.starmax");
     
     // Stars
     for(int i = 0; i < NUM_STARS; i++) {
         starPos[i].x = (float)(rand() % 256);
         starPos[i].y = (float)(rand() % 256);
+        starBright[i] = (float)(rand() % 256) / 256.0;
     }
     
     // Set up "normal 3D rendering" shader and get uniform locations
@@ -122,15 +126,18 @@ void effectDanceInit() {
 
 void effectDanceUpdate(float row) {
     float sync_stars_val = sync_get_val(sync_stars, row);
+    float sync_starmax_val = sync_get_val(sync_starmax, row);
+    int max_star = min(sync_starmax_val, NUM_STARS);
     
     // Render some 2D stuff
     FillBitmap(&screen, RGBAf(0.05, 0.05, 0.05, 1.0));    
-    for(int i = 0; i < NUM_STARS; i++) {
+    for(int i = 0; i < max_star; i++) {
         float x = fmod(starPos[i].x - sync_stars_val, 256.0);
         if(x < 0.0) {
             x = x + 256.0;
         }
-        DrawFilledCircle(&screen, x, starPos[i].y + 5, 2, RGBAf(0.85, 0.85, 0.85, 1.0));
+        float starCol = 0.2 + starBright[i] * 0.75;
+        DrawFilledCircle(&screen, x, starPos[i].y + 5, 2, RGBAf(starCol, starCol, starCol, 1.0));
     }
     
     GSPGPU_FlushDataCache(screenPixels, 256 * 256 * sizeof(Pixel));

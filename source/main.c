@@ -42,9 +42,9 @@ double audio_get_row() {
     return (double)sample_pos / (double)SAMPLES_PER_ROW;
 }
 
-#ifdef SYNC_PLAYER
+/*#ifdef SYNC_PLAYER
 #define DEV_MODE
-#endif
+#endif*/
 
 #ifndef SYNC_PLAYER
 void audio_pause(void *ignored, int flag) {
@@ -142,7 +142,7 @@ shaderProgram_s shaderProgramSkybox;
 // }
 
 int main() {    
-    bool DUMPFRAMES = false;
+    bool DUMPFRAMES = true;
     bool DUMPFRAMES_3D = false;
 
     // Set up effect sequence
@@ -269,9 +269,6 @@ int main() {
     ndspChnWaveBufAdd(0, &wave_buffer[0]);
     ndspChnWaveBufAdd(0, &wave_buffer[1]);
     
-    const struct sync_track* sync_fade = sync_get_track(rocket, "global.fade");;
-    const struct sync_track* sync_effect = sync_get_track(rocket, "global.effect");;    
-    
     // Get first row value
     double row = 0.0;  
     row = audio_get_row();    
@@ -289,6 +286,9 @@ int main() {
             printf("Spinwait complete.");
         }
     }
+    
+    const struct sync_track* sync_fade = sync_get_track(rocket, "global.fade");;
+    const struct sync_track* sync_effect = sync_get_track(rocket, "global.effect");;    
     
     // Start up first effect
     int current_effect = (int)sync_get_val(sync_effect, row + 0.01);
@@ -309,6 +309,7 @@ int main() {
             row = audio_get_row();
         }
         else {
+            printf("Frame dump %d\n", fc);
             row = ((double)fc * (32000.0 / 30.0)) / (double)SAMPLES_PER_ROW;
         }
         

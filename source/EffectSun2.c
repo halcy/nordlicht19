@@ -57,6 +57,11 @@ const struct sync_track* sync_rotate;
 const struct sync_track* sync_rotate2;
 const struct sync_track* sync_noise;
 const struct sync_track* sync_fov;
+const struct sync_track* sync_logo;
+
+static C3D_Tex tex_logo1;
+static C3D_Tex tex_logo2;
+static C3D_Tex tex_logo3;
 
 void effectSun2Init() {
     // initialize everything here
@@ -65,6 +70,7 @@ void effectSun2Init() {
     sync_rotate2 = sync_get_track(rocket, "sun2.rotate2");
     sync_noise = sync_get_track(rocket, "sun2.noise");
     sync_fov = sync_get_track(rocket, "sun2.fov");
+    sync_logo = sync_get_track(rocket, "sun2.logo");
     
     // Set up "normal 3D rendering" shader and get uniform locations
     C3D_BindProgram(&shaderProgramNormalMapping);
@@ -100,6 +106,19 @@ void effectSun2Init() {
     loadTex3DS(&station_tex_norm, NULL, "romfs:/tex_spacestation_normals.bin");
     C3D_TexSetFilter(&station_tex_norm, GPU_LINEAR, GPU_NEAREST);
     C3D_TexSetWrap(&station_tex_norm, GPU_CLAMP_TO_EDGE, GPU_CLAMP_TO_EDGE);
+    
+    // Load the logos
+    loadTex3DS(&tex_logo1, NULL, "romfs:/logo_svatg.bin");
+    C3D_TexSetFilter(&tex_logo1, GPU_NEAREST, GPU_NEAREST);
+    C3D_TexSetWrap(&tex_logo1, GPU_CLAMP_TO_EDGE, GPU_CLAMP_TO_EDGE);
+    
+    loadTex3DS(&tex_logo2, NULL, "romfs:/logo_nl.bin");
+    C3D_TexSetFilter(&tex_logo2, GPU_NEAREST, GPU_NEAREST);
+    C3D_TexSetWrap(&tex_logo2, GPU_CLAMP_TO_EDGE, GPU_CLAMP_TO_EDGE);
+    
+    loadTex3DS(&tex_logo3, NULL, "romfs:/logo_skate.bin");
+    C3D_TexSetFilter(&tex_logo3, GPU_NEAREST, GPU_NEAREST);
+    C3D_TexSetWrap(&tex_logo3, GPU_CLAMP_TO_EDGE, GPU_CLAMP_TO_EDGE);
     
     // Proctex init
     C3D_ProcTexInit(&pt, 0, 5);
@@ -266,6 +285,21 @@ void effectSun2Draw(float iod, float row) {
     C3D_LightEnvBumpMode(&lightEnv, GPU_BUMP_NOT_USED);
 }
 
+void drawLogo(float row) {
+    int logo_val = (int)sync_get_val(sync_logo, row);
+    if(logo_val == 1) {
+        fullscreenQuadHR(tex_logo1, 0.0, 0.0);
+    }
+    
+    if(logo_val == 2) {
+        fullscreenQuadHR(tex_logo2, 0.0, 0.0);
+    }
+    
+    if(logo_val == 3) {
+        fullscreenQuadHR(tex_logo3, 0.0, 0.0);
+    }
+}
+
 void effectSun2Render(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRight, float iod, float row) {
     // Update state
     effectSun2Update(row);
@@ -286,12 +320,14 @@ void effectSun2Render(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRigh
     // Left eye
     C3D_FrameDrawOn(targetLeft);
     effectSun2Draw(-iod, row);
+    drawLogo(row);
     fade();
       
     if(iod > 0.0) {
         // Right eye
         C3D_FrameDrawOn(targetRight);
         effectSun2Draw(iod, row);
+        drawLogo(row);
         fade();
     }
     
@@ -313,6 +349,8 @@ void effectSun2Exit() {
     C3D_TexDelete(&skybox_tex);
     C3D_TexDelete(&station_tex_col);
     C3D_TexDelete(&station_tex_norm);
-    
+    C3D_TexDelete(&tex_logo1);
+    C3D_TexDelete(&tex_logo2);
+    C3D_TexDelete(&tex_logo3);
     printf("the problem is outside of this actually\n");
 }

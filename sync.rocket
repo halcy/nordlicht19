@@ -1,0 +1,318 @@
+<sync rows="4096">
+	<tracks>
+		<track name="global.fade">
+			<key value="1" interpolation="1" row="0"/>
+			<key value="0" interpolation="0" row="160"/>
+			<key value="0" interpolation="1" row="848"/>
+			<key value="1" interpolation="0" row="879"/>
+			<key value="0" interpolation="0" row="904"/>
+			<key value="0" interpolation="1" row="1648"/>
+			<key value="1" interpolation="0" row="1663"/>
+			<key value="1" interpolation="1" row="1680"/>
+			<key value="0" interpolation="0" row="1688"/>
+			<key value="0" interpolation="1" row="1920"/>
+			<key value="1" interpolation="0" row="1927"/>
+			<key value="1" interpolation="1" row="1936"/>
+			<key value="0" interpolation="0" row="1944"/>
+			<key value="0" interpolation="1" row="2424"/>
+			<key value="1" interpolation="0" row="2439"/>
+			<key value="1" interpolation="1" row="2456"/>
+			<key value="0" interpolation="0" row="2472"/>
+			<key value="0" interpolation="1" row="2944"/>
+			<key value="1" interpolation="0" row="2951"/>
+			<key value="1" interpolation="1" row="2968"/>
+			<key value="0" interpolation="0" row="2984"/>
+			<key value="0" interpolation="1" row="3440"/>
+			<key value="0.7" interpolation="0" row="3456"/>
+			<key value="0.7" interpolation="1" row="3536"/>
+			<key value="1" interpolation="0" row="3568"/>
+		</track>
+		<track name="global.effect">
+			<key value="0" interpolation="0" row="0"/>
+			<key value="1" interpolation="0" row="880"/>
+			<key value="0" interpolation="0" row="1664"/>
+			<key value="3" interpolation="0" row="1928"/>
+			<key value="2" interpolation="0" row="2440"/>
+			<key value="4" interpolation="0" row="2952"/>
+		</track>
+		<track name="sun2.zoom">
+			<key value="-35000" interpolation="1" row="0"/>
+			<key value="-0.9" interpolation="0" row="648"/>
+			<key value="-0.9" interpolation="1" row="840"/>
+			<key value="-0.65" interpolation="0" row="880"/>
+			<key value="-0.65" interpolation="1" row="1680"/>
+			<key value="-100" interpolation="0" row="1752"/>
+			<key value="-100" interpolation="3" row="1784"/>
+			<key value="-30000" interpolation="0" row="1928"/>
+		</track>
+		<track name="sun2.rotate">
+			<key value="0" interpolation="2" row="644"/>
+			<key value="18.84" interpolation="1" row="808"/>
+			<key value="18.9" interpolation="1" row="840"/>
+			<key value="19.5" interpolation="0" row="880"/>
+		</track>
+		<track name="sun2.noise">
+			<key value="0" interpolation="3" row="776"/>
+			<key value="2000" interpolation="0" row="880"/>
+			<key value="2000" interpolation="1" row="1664"/>
+			<key value="4000" interpolation="0" row="1928"/>
+		</track>
+		<track name="sun2.fov">
+			<key value="0" interpolation="1" row="1736"/>
+			<key value="100" interpolation="0" row="1840"/>
+		</track>
+		<track name="metaroom.anim_t">
+			<key value="0" interpolation="1" row="904"/>
+			<key value="60" interpolation="1" row="1088"/>
+			<key value="70" interpolation="1" row="1240"/>
+			<key value="68" interpolation="1" row="1256"/>
+			<key value="80" interpolation="3" row="1400"/>
+			<key value="120" interpolation="0" row="1663"/>
+		</track>
+		<track name="metaroom.anim_r">
+			<key value="0.58" interpolation="0" row="904"/>
+			<key value="0" interpolation="0" row="956"/>
+			<key value="0.57" interpolation="0" row="958"/>
+			<key value="0" interpolation="0" row="959"/>
+			<key value="0.57" interpolation="0" row="960"/>
+			<key value="0.57" interpolation="1" row="1032"/>
+			<key value="0.4" interpolation="0" row="1035"/>
+			<key value="0.4" interpolation="1" row="1045"/>
+			<key value="0.3" interpolation="1" row="1048"/>
+			<key value="0.57" interpolation="0" row="1051"/>
+			<key value="0.57" interpolation="1" row="1072"/>
+			<key value="0.55" interpolation="0" row="1088"/>
+			<key value="0.4" interpolation="0" row="1160"/>
+			<key value="0.4" interpolation="1" row="1280"/>
+			<key value="0.55" interpolation="1" row="1288"/>
+			<key value="0.35" interpolation="0" row="1312"/>
+			<key value="0.35" interpolation="1" row="1344"/>
+			<key value="0.4" interpolation="0" row="1352"/>
+		</track>
+		<track name="metaroom.anim_w">
+			<key value="100" interpolation="0" row="904"/>
+			<key value="20" interpolation="1" row="1072"/>
+			<key value="0" interpolation="0" row="1088"/>
+			<key value="0" interpolation="0" row="1089"/>
+			<key value="0" interpolation="1" row="1384"/>
+			<key value="20" interpolation="0" row="1391"/>
+			<key value="0" interpolation="1" row="1392"/>
+			<key value="20" interpolation="0" row="1400"/>
+		</track>
+		<track name="metaroom.field">
+			<key value="0" interpolation="0" row="904"/>
+			<key value="0" interpolation="0" row="1089"/>
+			<key value="1" interpolation="0" row="1392"/>
+		</track>
+		<track name="metaroom.cam_rot">
+			<key value="0" interpolation="1" row="904"/>
+			<key value="-2" interpolation="0" row="1136"/>
+			<key value="-2" interpolation="1" row="1152"/>
+			<key value="25" interpolation="1" row="1168"/>
+			<key value="26" interpolation="1" row="1256"/>
+			<key value="36" interpolation="1" row="1272"/>
+			<key value="37" interpolation="0" row="1368"/>
+			<key value="37" interpolation="1" row="1384"/>
+			<key value="50" interpolation="1" row="1400"/>
+			<key value="52" interpolation="1" row="1416"/>
+			<key value="40" interpolation="1" row="1424"/>
+			<key value="54" interpolation="1" row="1432"/>
+			<key value="90" interpolation="1" row="1466"/>
+			<key value="93" interpolation="1" row="1640"/>
+			<key value="120" interpolation="0" row="1664"/>
+		</track>
+		<track name="metaroom.bright">
+			<key value="0" interpolation="1" row="916"/>
+			<key value="1" interpolation="0" row="923"/>
+			<key value="0" interpolation="0" row="956"/>
+			<key value="1" interpolation="0" row="958"/>
+			<key value="0" interpolation="0" row="959"/>
+			<key value="1" interpolation="0" row="960"/>
+			<key value="1" interpolation="1" row="1032"/>
+			<key value="0.65" interpolation="0" row="1035"/>
+			<key value="0.65" interpolation="1" row="1048"/>
+			<key value="1" interpolation="0" row="1051"/>
+			<key value="1" interpolation="1" row="1136"/>
+			<key value="0" interpolation="0" row="1152"/>
+			<key value="1" interpolation="0" row="1160"/>
+		</track>
+		<track name="metaroom.build">
+			<key value="0" interpolation="1" row="916"/>
+			<key value="4000" interpolation="0" row="923"/>
+			<key value="4000" interpolation="1" row="1136"/>
+			<key value="0" interpolation="0" row="1152"/>
+			<key value="4000" interpolation="0" row="1160"/>
+		</track>
+		<track name="guy.zoom">
+			<key value="-400" interpolation="0" row="2456"/>
+			<key value="-400" interpolation="1" row="2827"/>
+			<key value="-250" interpolation="3" row="2864"/>
+			<key value="-400" interpolation="0" row="2872"/>
+		</track>
+		<track name="guy.rotate">
+			<key value="0" interpolation="1" row="2456"/>
+			<key value="10" interpolation="1" row="2584"/>
+			<key value="-1" interpolation="0" row="2952"/>
+		</track>
+		<track name="guy.anim">
+			<key value="2000" interpolation="1" row="2456"/>
+			<key value="3000" interpolation="1" row="2488"/>
+			<key value="4600" interpolation="1" row="2552"/>
+			<key value="6000" interpolation="0" row="2568"/>
+			<key value="12300" interpolation="1" row="2576"/>
+			<key value="12450" interpolation="1" row="2616"/>
+			<key value="9300" interpolation="1" row="2704"/>
+			<key value="9500" interpolation="1" row="2736"/>
+			<key value="13000" interpolation="0" row="2816"/>
+			<key value="13176" interpolation="0" row="2820"/>
+			<key value="13396" interpolation="0" row="2824"/>
+			<key value="13571" interpolation="0" row="2828"/>
+			<key value="13746" interpolation="1" row="2832"/>
+			<key value="14100" interpolation="2" row="2864"/>
+			<key value="18700" interpolation="0" row="2952"/>
+		</track>
+		<track name="guy.stars">
+			<key value="0" interpolation="1" row="2456"/>
+			<key value="200" interpolation="1" row="2504"/>
+			<key value="300" interpolation="1" row="2576"/>
+			<key value="500" interpolation="1" row="2632"/>
+			<key value="600" interpolation="1" row="2704"/>
+			<key value="700" interpolation="1" row="2736"/>
+			<key value="800" interpolation="1" row="2832"/>
+			<key value="900" interpolation="1" row="2864"/>
+			<key value="1000" interpolation="0" row="2952"/>
+		</track>
+		<track name="cube.zoom">
+			<key value="-10" interpolation="0" row="1928"/>
+			<key value="-10" interpolation="1" row="2176"/>
+			<key value="-6" interpolation="0" row="2184"/>
+			<key value="-6" interpolation="1" row="2240"/>
+			<key value="-11" interpolation="0" row="2248"/>
+		</track>
+		<track name="cube.rotate">
+			<key value="0" interpolation="1" row="1928"/>
+			<key value="8" interpolation="0" row="2440"/>
+		</track>
+		<track name="cube.comets">
+			<key value="0" interpolation="1" row="1928"/>
+			<key value="10" interpolation="0" row="2440"/>
+		</track>
+		<track name="cube.scroller">
+			<key value="200" interpolation="0" row="1928"/>
+			<key value="200" interpolation="1" row="1936"/>
+			<key value="100" interpolation="0" row="1944"/>
+			<key value="100" interpolation="1" row="1968"/>
+			<key value="0" interpolation="0" row="1976"/>
+			<key value="0" interpolation="1" row="2000"/>
+			<key value="-100" interpolation="0" row="2008"/>
+			<key value="-100" interpolation="1" row="2032"/>
+			<key value="-200" interpolation="0" row="2040"/>
+			<key value="-200" interpolation="1" row="2064"/>
+			<key value="-300" interpolation="0" row="2072"/>
+			<key value="-300" interpolation="1" row="2096"/>
+			<key value="-400" interpolation="0" row="2104"/>
+			<key value="-400" interpolation="1" row="2128"/>
+			<key value="-500" interpolation="0" row="2136"/>
+			<key value="-500" interpolation="1" row="2160"/>
+			<key value="-600" interpolation="0" row="2168"/>
+			<key value="-600" interpolation="1" row="2192"/>
+			<key value="-700" interpolation="0" row="2200"/>
+			<key value="-700" interpolation="1" row="2224"/>
+			<key value="-800" interpolation="0" row="2232"/>
+			<key value="-800" interpolation="1" row="2256"/>
+			<key value="-900" interpolation="0" row="2264"/>
+			<key value="-900" interpolation="1" row="2288"/>
+			<key value="-1000" interpolation="0" row="2296"/>
+			<key value="-1000" interpolation="1" row="2320"/>
+			<key value="-1100" interpolation="0" row="2328"/>
+			<key value="-1100" interpolation="1" row="2352"/>
+			<key value="-1200" interpolation="0" row="2360"/>
+			<key value="-1200" interpolation="1" row="2384"/>
+			<key value="-1300" interpolation="0" row="2392"/>
+			<key value="-1300" interpolation="1" row="2416"/>
+			<key value="-1400" interpolation="0" row="2424"/>
+		</track>
+		<track name="tunnel.rot">
+			<key value="0" interpolation="1" row="2952"/>
+			<key value="12.5" interpolation="0" row="3016"/>
+			<key value="12.5" interpolation="1" row="3072"/>
+			<key value="35" interpolation="0" row="3144"/>
+			<key value="35" interpolation="1" row="3208"/>
+			<key value="50" interpolation="0" row="3272"/>
+			<key value="50" interpolation="1" row="3336"/>
+			<key value="65" interpolation="0" row="3408"/>
+			<key value="100" interpolation="0" row="3464"/>
+		</track>
+		<track name="tunnel.z">
+			<key value="0" interpolation="1" row="2952"/>
+			<key value="700" interpolation="1" row="3456"/>
+			<key value="750" interpolation="0" row="3592"/>
+		</track>
+		<track name="tunnel.lseed">
+			<key value="0" interpolation="0" row="2952"/>
+			<key value="1" interpolation="0" row="3256"/>
+			<key value="2" interpolation="0" row="3258"/>
+			<key value="3" interpolation="0" row="3260"/>
+			<key value="4" interpolation="0" row="3262"/>
+			<key value="5" interpolation="0" row="3264"/>
+			<key value="6" interpolation="0" row="3268"/>
+			<key value="7" interpolation="0" row="3272"/>
+			<key value="1" interpolation="0" row="3408"/>
+			<key value="2" interpolation="0" row="3412"/>
+			<key value="4" interpolation="0" row="3448"/>
+		</track>
+		<track name="tunnel.lstart">
+			<key value="0" interpolation="0" row="2952"/>
+			<key value="-100" interpolation="0" row="3072"/>
+			<key value="-90" interpolation="1" row="3232"/>
+			<key value="-140" interpolation="0" row="3250"/>
+			<key value="-140" interpolation="1" row="3336"/>
+			<key value="-350" interpolation="0" row="3432"/>
+			<key value="0" interpolation="0" row="3456"/>
+		</track>
+		<track name="tunnel.lend">
+			<key value="-1" interpolation="0" row="2952"/>
+			<key value="-45" interpolation="1" row="3072"/>
+			<key value="-35" interpolation="1" row="3104"/>
+			<key value="-45" interpolation="1" row="3144"/>
+			<key value="-120" interpolation="0" row="3192"/>
+			<key value="120" interpolation="0" row="3232"/>
+			<key value="-190" interpolation="1" row="3336"/>
+			<key value="120" interpolation="0" row="3432"/>
+			<key value="-1" interpolation="0" row="3456"/>
+		</track>
+		<track name="sun2.rotate2">
+			<key value="0" interpolation="1" row="1736"/>
+			<key value="3.14" interpolation="0" row="1824"/>
+		</track>
+		<track name="sun2.logo">
+			<key value="0" interpolation="0" row="0"/>
+			<key value="1" interpolation="0" row="128"/>
+			<key value="2" interpolation="0" row="192"/>
+			<key value="3" interpolation="0" row="256"/>
+			<key value="0" interpolation="0" row="392"/>
+		</track>
+		<track name="guy.starmax">
+			<key value="300" interpolation="0" row="2440"/>
+			<key value="300" interpolation="1" row="2496"/>
+			<key value="100" interpolation="0" row="2512"/>
+			<key value="100" interpolation="1" row="2568"/>
+			<key value="200" interpolation="0" row="2584"/>
+			<key value="300" interpolation="1" row="2624"/>
+			<key value="100" interpolation="0" row="2640"/>
+			<key value="100" interpolation="1" row="2696"/>
+			<key value="300" interpolation="0" row="2712"/>
+			<key value="300" interpolation="1" row="2728"/>
+			<key value="100" interpolation="0" row="2744"/>
+			<key value="100" interpolation="1" row="2824"/>
+			<key value="300" interpolation="0" row="2840"/>
+			<key value="300" interpolation="1" row="2856"/>
+			<key value="100" interpolation="0" row="2872"/>
+		</track>
+		<track name="tunnel.logo">
+			<key value="0" interpolation="0" row="2952"/>
+			<key value="1" interpolation="0" row="3456"/>
+		</track>
+	</tracks>
+	<bookmarks/>
+</sync>

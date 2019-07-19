@@ -24,12 +24,16 @@ static C3D_LightLut lutShittyFresnel;
 
 static C3D_Tex tunnelTex;
 static C3D_Tex tunnelTexGlow;
+static C3D_Tex skaterboi;
 
 const struct sync_track* sync_rot;
 const struct sync_track* sync_z;
 const struct sync_track* sync_laser_seed;
 const struct sync_track* sync_laser_start;
 const struct sync_track* sync_laser_end;
+const struct sync_track* sync_finallogo;
+const struct sync_track* sync_light_r;
+const struct sync_track* sync_light_gb;
 
 static const C3D_Material lightMaterial = {
     { 0.1f, 0.1f, 0.1f }, //ambient
@@ -54,6 +58,9 @@ void effectTunnelInit() {
     sync_laser_seed = sync_get_track(rocket, "tunnel.lseed");
     sync_laser_start = sync_get_track(rocket, "tunnel.lstart");
     sync_laser_end = sync_get_track(rocket, "tunnel.lend");
+    sync_finallogo = sync_get_track(rocket, "tunnel.logo");
+    sync_light_r = sync_get_track(rocket, "tunnel.r");
+    sync_light_gb = sync_get_track(rocket, "tunnel.gb");
     
     // Create the VBO
     vbo = (vertex_rigged*)linearAlloc(sizeof(vertex_rigged) * MAX_VERTS);
@@ -78,6 +85,10 @@ void effectTunnelInit() {
     loadTex3DS(&tunnelTexGlow, NULL, "romfs:/tex_tunnel_glow.bin");
     C3D_TexSetFilter(&tunnelTexGlow, GPU_LINEAR, GPU_LINEAR);
     C3D_TexSetWrap(&tunnelTexGlow, GPU_CLAMP_TO_EDGE, GPU_CLAMP_TO_EDGE);        
+    
+    loadTex3DS(&skaterboi, NULL, "romfs:/skaterboi.bin");
+    C3D_TexSetFilter(&tunnelTexGlow, GPU_NEAREST, GPU_NEAREST);
+    C3D_TexSetWrap(&tunnelTexGlow, GPU_CLAMP_TO_EDGE, GPU_CLAMP_TO_EDGE);        
 }
 
 static void effectTunnelDraw(float iod, float row) {
@@ -99,6 +110,9 @@ static void effectTunnelDraw(float iod, float row) {
     float laser_start = sync_get_val(sync_laser_start, row);
     float laser_end = sync_get_val(sync_laser_end, row);
     
+    float r_val = sync_get_val(sync_light_r, row);
+    float gb_val = sync_get_val(sync_light_gb, row);
+    
     // Send matrices
     C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLocProjection, &projection);
     
@@ -115,7 +129,7 @@ static void effectTunnelDraw(float iod, float row) {
     
     C3D_FVec lightVec = FVec4_New(0.0, 0.0, -4.0, 1.0);
     C3D_LightInit(&light, &lightEnv);
-    C3D_LightColor(&light, 1.0, 1.0, 1.0);
+    C3D_LightColor(&light, r_val, gb_val, gb_val);
     C3D_LightPosition(&light, &lightVec);
     
     // Set up for drawing the tunnel
@@ -301,6 +315,8 @@ void effectTunnelRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRi
     AttrInfo_AddLoader(attrInfo, 3, GPU_FLOAT, 3); // v3 = normal        
     AttrInfo_AddLoader(attrInfo, 4, GPU_FLOAT, 2); // v4 = texcoords
     
+    float logo_val = sync_get_val(sync_finallogo, row);
+    
     C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
     
     // Left eye
@@ -312,17 +328,23 @@ void effectTunnelRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRi
     C3D_AlphaBlend(GPU_BLEND_ADD, GPU_BLEND_ADD, GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA);
     C3D_CullFace(GPU_CULL_BACK_CCW);
     fade();
-    
+    if(logo_val == 1) {
+        fullscreenQuadHRNS(skaterboi, 0.0, 0.0);
+    } 
     if(iod > 0.0) {
         // Right eye
         C3D_FrameDrawOn(targetRight);
-        C3D_RenderTargetClear(targetRight, C3D_CLEAR_ALL, 0x68B0D8FF, 0);
-        
+        C3D_RenderTargetClear(targetRight, C3D_CLEAR_ALL, 0x68B0D8FF, 0); 
+
         // Actual scene
 //         effectTunnelDraw(iod, row);
         C3D_AlphaBlend(GPU_BLEND_ADD, GPU_BLEND_ADD, GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA);
         C3D_CullFace(GPU_CULL_BACK_CCW);
         fade();
+        
+        if(logo_val == 1) {
+            fullscreenQuadHRNS(skaterboi, 0.0, 0.0);
+        }       
     }
     
     C3D_FrameEnd(0);
@@ -335,6 +357,7 @@ void effectTunnelExit() {
     // Free the texture
     C3D_TexDelete(&tunnelTex);
     C3D_TexDelete(&tunnelTexGlow);
+    C3D_TexDelete(&skaterboi);
     
     // Free vertices
     linearFree(vbo);

@@ -74,6 +74,8 @@ extern float lutSquaredDist(float input, float offset, float scale);
 extern float lutDist(float input, float offset, float scale);
 
 extern void fullscreenQuad(C3D_Tex texture, float iod, float iodmult);
+extern void fullscreenQuadHR(C3D_Tex texture, float iod, float iodmult);
+extern void fullscreenQuadHRNS(C3D_Tex texture, float iod, float iodmult);
 extern void fullscreenQuadFlat(C3D_Tex texture);
 extern void fullscreenQuadGlitch(C3D_Tex texture, int parts, float time, float amount);
 
