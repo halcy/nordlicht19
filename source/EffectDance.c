@@ -1,4 +1,6 @@
-// Nordlicht demoparty
+/**
+ * A dancing guy, with mocap by halcy
+ */
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>

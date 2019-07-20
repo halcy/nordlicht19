@@ -504,6 +504,7 @@ u8* readFileMem(const char* fileName, u32* fileSize, bool linear) {
     return(buffer);
 }
 
+// Wait for A B (good for debugging)
 void waitForA() {
 //     while(1) {
         hidScanInput();

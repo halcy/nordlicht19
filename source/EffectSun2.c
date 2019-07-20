@@ -1,4 +1,7 @@
-// Nordlicht demoparty
+/**
+ * Zoomy sun effect
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -158,14 +161,6 @@ void effectSun2Init() {
 }
 
 void effectSun2Update(float row) {
-    // You can update textures here, but afterwards you have to display transfer and wait for PPF interrupt:
-    // GSPGPU_FlushDataCache(screenPixels, SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(Pixel));
-    // GX_DisplayTransfer((u32*)screenPixels, GX_BUFFER_DIM(SCREEN_TEXTURE_WIDTH, SCREEN_TEXTURE_HEIGHT), (u32*)screen_tex.data, GX_BUFFER_DIM(SCREEN_TEXTURE_WIDTH, SCREEN_TEXTURE_HEIGHT), TEXTURE_TRANSFER_FLAGS);
-    // gspWaitForPPF();
-    
-    // Or vertices or any other state ofc.
-    // How to get a value from a sync track:
-    
     // Proc tex update
     float sync_noise_val = sync_get_val(sync_noise, row);
     C3D_ProcTexNoiseCoefs(&pt, C3D_ProcTex_U, 0.125f, 200, 1.0 * 0.0001);
@@ -203,7 +198,6 @@ void effectSun2Draw(float iod, float row) {
     
     // GPU state for additive blend
     C3D_DepthTest(false, GPU_GEQUAL, GPU_WRITE_COLOR);
-//     C3D_AlphaBlend(GPU_BLEND_ADD, GPU_BLEND_ADD, GPU_ONE, GPU_ONE, GPU_ONE, GPU_ONE);
     C3D_AlphaBlend(GPU_BLEND_ADD, GPU_BLEND_ADD, GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA);
     
     // Uniforms to shader
@@ -343,20 +337,14 @@ void effectSun2Render(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRigh
 }
 
 void effectSun2Exit() { 
-//     gspWaitForP3D();
-//     gspWaitForPPF();
-    
     // Free allocated memory
-//     printf("vbo free\n");
     linearFree(vbo);
 
     // Free textures
-//     printf("tex free\n");
     C3D_TexDelete(&skybox_tex);
     C3D_TexDelete(&station_tex_col);
     C3D_TexDelete(&station_tex_norm);
     C3D_TexDelete(&tex_logo1);
     C3D_TexDelete(&tex_logo2);
     C3D_TexDelete(&tex_logo3);
-//     printf("the problem is outside of this actually\n");
 }

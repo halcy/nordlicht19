@@ -1,3 +1,9 @@
+/**
+ * Nordlicht 2019 - Skate Station
+ * 
+ * SVatG 2019 ~ halcy / wrl
+ **/
+
 #include "Tools.h"
 #include "Rocket/sync.h"
 
@@ -99,11 +105,13 @@ void audio_callback(void* ignored) {
             sample_pos += AUDIO_BUFSIZE;
         }
         uint8_t *dest = (uint8_t*)wave_buffer[fill_buffer].data_pcm16;
+        
+        // For audio streaming (WIP)
 //         memcpy(dest, audioTempBuf, AUDIO_BUFSIZE * sizeof(int16_t));
 //         wantAudioData = 1;
 //         int block_id = (sample_pos - AUDIO_BUFSIZE) / AUDIO_BLOCKSIZE;
 //         if(block_id != music_bin_play_block) {
-// //             printf("Copying audio %d != %d @ %d\n", block_id, music_bin_play_block, sample_pos);
+//             printf("Copying audio %d != %d @ %d\n", block_id, music_bin_play_block, sample_pos);
 //             memcpy(music_bin_play, music_bin_preload, AUDIO_BLOCKSIZE * sizeof(int16_t));
 //             music_bin_play_block = block_id;
 //         }
@@ -131,6 +139,7 @@ shaderProgram_s shaderProgramNormalMapping;
 shaderProgram_s shaderProgramBones;
 shaderProgram_s shaderProgramSkybox;
 
+// For audio streaming (WIP)
 // void music_preload(int block_id) {
 //     if(block_id != music_bin_preload_block) {
 //         int load_pos = block_id * AUDIO_BLOCKSIZE;
@@ -142,8 +151,8 @@ shaderProgram_s shaderProgramSkybox;
 // }
 
 int main() {    
-    bool DUMPFRAMES = true;
-    bool DUMPFRAMES_3D = true;
+    bool DUMPFRAMES = false;
+    bool DUMPFRAMES_3D = false;
 
     // Set up effect sequence
     effect effect_list[10];
@@ -190,9 +199,9 @@ int main() {
     romfsInit();
     
     // Open music
-//     printf("Music load ----- %d %d %d\n", linearSpaceFree(), vramSpaceFree(), mappableSpaceFree());
     music_bin = readFileMem("romfs:/music2.bin", &music_bin_size, false);
 
+    // Streaming audio loader
 //     audioFile = fopen("romfs:/music2.bin", "rb");
 //     fseek(audioFile, 0, SEEK_END);
 //     music_bin_size = ftell(audioFile);
@@ -201,12 +210,6 @@ int main() {
 //     music_bin_play = (u8*)malloc(65536 * sizeof(int16_t));
 //     music_bin_preload = (u8*)malloc(65536 * sizeof(int16_t));
 //     music_preload(0);
-    
-//     
-    // Load textures
-//     printf("Tex load ----- %d %d %d\n", linearSpaceFree(), vramSpaceFree(), mappableSpaceFree());
-//     stars_bin = readFileMem("romfs:/stars.bin", &stars_bin_size, false);
-//     tex_room_bin = readFileMem("romfs:/tex_room.bin", &tex_room_bin_size, false);
     
     // Rocket startup
 #ifndef SYNC_PLAYER
@@ -364,12 +367,6 @@ int main() {
     printf(effect_texts[eff_c]);
     while (aptMainLoop()) {
 //         music_preload(music_bin_play_block + 1);
-//         // Refill audio buffer
-//         if(wantAudioData == 1) {
-//             fseek(audioFile, (sample_pos - AUDIO_BUFSIZE) * sizeof(int16_t), SEEK_SET);
-//             fread(audioTempBuf, AUDIO_BUFSIZE * sizeof(int16_t), 1, audioFile);
-//             wantAudioData = 0;
-//         }
         
         if(!DUMPFRAMES) {
             row = audio_get_row();
@@ -388,33 +385,23 @@ int main() {
         }
 #endif
         int new_effect = (int)sync_get_val(sync_effect, row);
-//         printf("----- %d %d %d\n", linearSpaceFree(), vramSpaceFree(), mappableSpaceFree());
 #ifndef DEV_MODE
         if(new_effect != -1 && new_effect != current_effect) {
-//             gspWaitForP3D();
-//             gspWaitForPPF();
-//             printf("EFFECT %d EXIT\n", current_effect);
             effect_list[current_effect].exit();
-//             printf("----- %d %d %d\n", linearSpaceFree(), vramSpaceFree(), mappableSpaceFree());
             current_effect = new_effect;
-//             waitForA(); 
-//             printf("EFFECT %d INIT\n", current_effect);
             effect_list[current_effect].init();
-//             waitForA(); 
             eff_c++;
             printf(effect_texts[eff_c]);
         }
 #endif
 
         fadeVal = sync_get_val(sync_fade, row);
-//         printf("whaat\n");
         FillBitmap(&fadeBitmap, RGBAf(0.0, 0.0, 0.0, fadeVal));
         GSPGPU_FlushDataCache(fadePixels, 64 * 64 * sizeof(Pixel));
         GX_DisplayTransfer((u32*)fadePixels, GX_BUFFER_DIM(64, 64), (u32*)fade_tex.data, GX_BUFFER_DIM(64, 64), TEXTURE_TRANSFER_FLAGS);
         gspWaitForPPF();
-//         printf("we in here\n");
         hidScanInput();
-//         printf("why?\n");
+
         // Respond to user input
         u32 kDown = hidKeysDown();
         if (kDown & KEY_START) {
@@ -422,9 +409,9 @@ int main() {
         }  
         float slider = osGet3DSliderState();
         float iod = slider / 3.0;
-//         printf("okay %d?\n", current_effect);
+
         effect_list[current_effect].render(targetLeft, targetRight, iod, row);
-//         printf("hah\n");
+
         if(DUMPFRAMES) {
             gspWaitForP3D();
             gspWaitForPPF();
@@ -464,5 +451,6 @@ int main() {
     socExit();
     C3D_Fini();
     gfxExit();
+    
     return 0;
 }
