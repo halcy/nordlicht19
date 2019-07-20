@@ -143,7 +143,7 @@ shaderProgram_s shaderProgramSkybox;
 
 int main() {    
     bool DUMPFRAMES = true;
-    bool DUMPFRAMES_3D = false;
+    bool DUMPFRAMES_3D = true;
 
     // Set up effect sequence
     effect effect_list[10];
@@ -190,7 +190,7 @@ int main() {
     romfsInit();
     
     // Open music
-    printf("Music load ----- %d %d %d\n", linearSpaceFree(), vramSpaceFree(), mappableSpaceFree());
+//     printf("Music load ----- %d %d %d\n", linearSpaceFree(), vramSpaceFree(), mappableSpaceFree());
     music_bin = readFileMem("romfs:/music2.bin", &music_bin_size, false);
 
 //     audioFile = fopen("romfs:/music2.bin", "rb");
@@ -216,7 +216,7 @@ int main() {
     
     rocket = sync_create_device("sdmc:/sync");
 #else
-    printf("Loading tracks from romfs...");
+//     printf("Loading tracks from romfs...");
     rocket = sync_create_device("romfs:/sync");
 #endif
     if(connect_rocket()) {
@@ -240,7 +240,7 @@ int main() {
     shaderProgramInit(&shaderProgramNormalMapping);
     shaderProgramSetVsh(&shaderProgramNormalMapping, &vshader_normalmapping_dvlb->DVLE[0]);
     
-    printf("All loaded");
+//     printf("All loaded");
     
     // Sound on
     ndspInit();
@@ -283,7 +283,7 @@ int main() {
     
     for(int i = 0; i < 100000; i++) {
         if(i == 100000 - 1) {
-            printf("Spinwait complete.");
+            printf("");
         }
     }
     
@@ -292,10 +292,76 @@ int main() {
     
     // Start up first effect
     int current_effect = (int)sync_get_val(sync_effect, row + 0.01);
-    printf("STARTUP @ %d\n", current_effect);
+//     printf("STARTUP @ %d\n", current_effect);
     effect_list[current_effect].init();
     
+    char* effect_texts[6] = {
+      //"Nothing really special at the start - we"     
+        "Effect 1: Logos and zoom in\n"
+        "===========================\n"
+        "Nothing really special at the start - \n"
+        "we just zoom in really fast, show a few\n"
+        "logos\n\n"
+        "The space station uses normal mapping\n"
+        "and the sun actually uses the 3DS\n"
+        "procedural texturing unit to generate a\n"
+        "nice detailed texture that is larger\n"
+        "than what the 3DS could usually do.\n\n",
+        "Effect 2: Metaballs\n"
+        "===================\n"
+        "Marching cubes'd and using central\n"
+        "difference normals, trying to do as\n"
+        "little work as we can get away with.\n"
+        "Took forever to debug some memory\n"
+        "issues here - remember to not access\n"
+        "memory you have not malloc'd, kids.\n\n"
+        "Rendered solid once and then again in\n"
+        "an additive pass. There is also a \n"
+        "subtle lighting effect to make it look\n"
+        "like the balls are emitting light.\n\n",
+        "Effect 3: Hyperspace\n"
+        "====================\n"
+        "The FOV of Effect 1 is animated. Not\n"
+        "much to say about this other than that.\n\n"
+        "I fixed a bug in this an hour after the\n"
+        "deadline and had to re-framedump the\n"
+        "part real quick.\n\n",
+        "Effect 4: Greets Cube\n"
+        "=====================\n"
+        "Welcome to the Greet Cube. This is\n"
+        "really mostly texture mapping with a\n"
+        "dynamic, partially translucent texture\n"
+        "with some nice glitchy interior in the\n"
+        "model.\n\n"
+        "The comet ribbons were added because I\n"
+        "thought there wasn't enough going on.\n\n",
+        "Effect 5: Bone Animation\n"
+        "========================\n"
+        "It's straight bone animation. The\n"
+        "movement data was motion captured by\n"
+        "me on a system I happened to have\n"
+        "access to and then synchronized to the\n"
+        "music after the fact.\n\n"
+        "The background is a simple dynamic\n"
+        "starfield texture.\n\n",
+        "Effect 6: Lasertunnel\n"
+        "=====================\n"
+        "A tunnel segment with some dynamic\n"
+        "geometry for the doors. There's always\n"
+        "three segments visible at any given\n"
+        " time. The lasers are recycle from our\n"
+        "last release, but they look a lot\n"
+        "cooler here, in my opinion.\n\n"
+        "That's about it - I hope you enjoyed\n"
+        "our release. If you want to know more,\n"
+        "the source code is available:\n\n"
+        " https://github.com/halcy/nordlicht19\n\n"
+        "Now release 3DS prods, you cowards!\n"
+    };
+    
     int fc = 0;
+    int eff_c = 0;
+    printf(effect_texts[eff_c]);
     while (aptMainLoop()) {
 //         music_preload(music_bin_play_block + 1);
 //         // Refill audio buffer
@@ -327,14 +393,16 @@ int main() {
         if(new_effect != -1 && new_effect != current_effect) {
 //             gspWaitForP3D();
 //             gspWaitForPPF();
-            printf("EFFECT %d EXIT\n", current_effect);
+//             printf("EFFECT %d EXIT\n", current_effect);
             effect_list[current_effect].exit();
-            printf("----- %d %d %d\n", linearSpaceFree(), vramSpaceFree(), mappableSpaceFree());
+//             printf("----- %d %d %d\n", linearSpaceFree(), vramSpaceFree(), mappableSpaceFree());
             current_effect = new_effect;
 //             waitForA(); 
-            printf("EFFECT %d INIT\n", current_effect);
+//             printf("EFFECT %d INIT\n", current_effect);
             effect_list[current_effect].init();
 //             waitForA(); 
+            eff_c++;
+            printf(effect_texts[eff_c]);
         }
 #endif
 
@@ -364,7 +432,7 @@ int main() {
             u8* fbl = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
             
             char fname[255];
-            sprintf(fname, "3ds/frames/fb_left_%08d.raw", fc);
+            sprintf(fname, "3ds/frames2/fb_left_%08d.raw", fc);
             
             FILE* file = fopen(fname,"w");
             fwrite(fbl, sizeof(int32_t), SCREEN_HEIGHT * SCREEN_WIDTH, file);
@@ -374,7 +442,7 @@ int main() {
             if(DUMPFRAMES_3D) {
                 u8* fbr = gfxGetFramebuffer(GFX_TOP, GFX_RIGHT, NULL, NULL);
                 
-                sprintf(fname, "3ds/frames/fb_right_%08d.raw", fc);
+                sprintf(fname, "3ds/frames2/fb_right_%08d.raw", fc);
                 
                 file = fopen(fname,"w");
                 fwrite(fbr, sizeof(int32_t), SCREEN_HEIGHT * SCREEN_WIDTH, file);

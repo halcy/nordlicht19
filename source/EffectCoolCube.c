@@ -71,7 +71,7 @@ static const C3D_Material lightMaterial = {
 };
 
 // VBOs
-#define VBO_SIZE 35000
+#define VBO_SIZE 55000
 static vertex2* vbo;
 static C3D_BufInfo* bufInfo;
 
@@ -99,7 +99,7 @@ void effectCoolCubeInit() {
     uLocModelviewSkybox = shaderInstanceGetUniformLocation(shaderProgramSkybox.vertexShader, "modelView");
     
     // Allocate VBOs
-    printf("Lin Alloc.\n");
+//     printf("Lin Alloc.\n");
     waitForA();    
     vbo = (vertex2*)linearAlloc(sizeof(vertex2) * VBO_SIZE);
     
@@ -120,7 +120,7 @@ void effectCoolCubeInit() {
     C3D_TexSetFilter(&skybox_tex, GPU_LINEAR, GPU_LINEAR);
     C3D_TexSetWrap(&skybox_tex, GPU_CLAMP_TO_EDGE, GPU_CLAMP_TO_EDGE);
     
-    printf("Tex A.\n");
+//     printf("Tex A.\n");
     waitForA(); 
     
     // Cool Cube textures
@@ -130,7 +130,7 @@ void effectCoolCubeInit() {
     C3D_TexSetFilter(&cubeColTex, GPU_LINEAR, GPU_NEAREST);
     C3D_TexSetWrap(&cubeColTex, GPU_REPEAT, GPU_REPEAT);  
     
-    printf("Tex B.\n");
+//     printf("Tex B.\n");
     waitForA(); 
     
     cubeNormPixels = (Pixel*)linearAlloc(512 * 256 * sizeof(Pixel));
@@ -139,7 +139,7 @@ void effectCoolCubeInit() {
     C3D_TexSetFilter(&cubeNormTex, GPU_LINEAR, GPU_NEAREST);
     C3D_TexSetWrap(&cubeNormTex, GPU_REPEAT, GPU_REPEAT);  
     
-    printf("Tex C.\n");
+//     printf("Tex C.\n");
     waitForA(); 
     
     cubeColAddPixels = (Pixel*)linearAlloc(512 * 256 * sizeof(Pixel));
@@ -165,7 +165,7 @@ vec3_t sph_sinusoid(float a, float k, float n, float t) {
 }
 
 void effectCoolCubeUpdate(float row) {
-    printf("FREE IN UPD----- %d %d %d\n", linearSpaceFree(), vramSpaceFree(), mappableSpaceFree());
+//     printf("FREE IN UPD----- %d %d %d\n", linearSpaceFree(), vramSpaceFree(), mappableSpaceFree());
     
     float sync_comets_val = sync_get_val(sync_comets, row);
     cometsVertCount = 0;
@@ -531,7 +531,6 @@ void effectCoolCubeRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* target
 //     printf("Call draw.\n");
     effectCoolCubeDraw(-iod, row);
 //     printf("FADE.\n");   
-    fade();
       
     if(iod > 0.0) {
         // Right eye
@@ -539,6 +538,9 @@ void effectCoolCubeRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* target
         effectCoolCubeDraw(iod, row);
         fade();
     }
+    
+    C3D_FrameDrawOn(targetLeft);
+    fade();
     
     // Ready to flip
     C3D_FrameEnd(0);
@@ -550,18 +552,18 @@ void effectCoolCubeExit() {
 //     gspWaitForPPF();
     
     // Free textures
-    printf("tex free\n");
+//     printf("tex free\n");
     C3D_TexDelete(&skybox_tex);
     C3D_TexDelete(&cubeColTex);
     C3D_TexDelete(&cubeColAddTex);
     C3D_TexDelete(&cubeNormTex);
     
     // Free allocated memory
-    printf("vbo free\n");
+//     printf("vbo free\n");
     linearFree(vbo);
     linearFree(cubeColPixels);
     linearFree(cubeColAddPixels);
     linearFree(cubeNormPixels);
     
-    printf("the problem is outside of this actually\n");
+//     printf("the problem is outside of this actually\n");
 }

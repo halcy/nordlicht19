@@ -288,7 +288,6 @@ void effectDanceRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRig
     // Left eye
     C3D_FrameDrawOn(targetLeft);
     effectDanceDraw(-iod, row);
-    fade();
       
     if(iod > 0.0) {
         // Right eye
@@ -296,6 +295,9 @@ void effectDanceRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRig
         effectDanceDraw(iod, row);
         fade();
     }
+    
+    C3D_FrameDrawOn(targetLeft);    
+    fade();
     
     // Ready to flip
     C3D_FrameEnd(0);
@@ -307,17 +309,17 @@ void effectDanceExit() {
 //     gspWaitForPPF();
 //     
     // Free allocated memory
-    printf("vbo free\n");
+//     printf("vbo free\n");
     linearFree(vbo);
     linearFree(screenPixels);
     
     // Free textures
-    printf("tex free\n");
+//     printf("tex free\n");
     C3D_TexDelete(&plat_tex);
     C3D_TexDelete(&guy_tex);
     C3D_TexDelete(&screen_tex);
     
     fclose(danceFile);
     
-    printf("the problem is outside of this actually\n");
+//     printf("the problem is outside of this actually\n");
 }

@@ -325,19 +325,14 @@ void effectTunnelRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRi
     
     // Actual scene
     effectTunnelDraw(-iod, row);
-    C3D_AlphaBlend(GPU_BLEND_ADD, GPU_BLEND_ADD, GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA);
-    C3D_CullFace(GPU_CULL_BACK_CCW);
-    fade();
-    if(logo_val == 1) {
-        fullscreenQuadHRNS(skaterboi, 0.0, 0.0);
-    } 
+
     if(iod > 0.0) {
         // Right eye
         C3D_FrameDrawOn(targetRight);
         C3D_RenderTargetClear(targetRight, C3D_CLEAR_ALL, 0x68B0D8FF, 0); 
 
         // Actual scene
-//         effectTunnelDraw(iod, row);
+        effectTunnelDraw(iod, row);
         C3D_AlphaBlend(GPU_BLEND_ADD, GPU_BLEND_ADD, GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA);
         C3D_CullFace(GPU_CULL_BACK_CCW);
         fade();
@@ -346,6 +341,14 @@ void effectTunnelRender(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRi
             fullscreenQuadHRNS(skaterboi, 0.0, 0.0);
         }       
     }
+    
+    C3D_FrameDrawOn(targetLeft);
+    C3D_AlphaBlend(GPU_BLEND_ADD, GPU_BLEND_ADD, GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA);
+    C3D_CullFace(GPU_CULL_BACK_CCW);
+    fade();
+    if(logo_val == 1) {
+        fullscreenQuadHRNS(skaterboi, 0.0, 0.0);
+    } 
     
     C3D_FrameEnd(0);
 }

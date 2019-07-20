@@ -165,7 +165,12 @@ void effectSun2Update(float row) {
     
     // Or vertices or any other state ofc.
     // How to get a value from a sync track:
-    // Literally nothing lol. should move proctex probably
+    
+    // Proc tex update
+    float sync_noise_val = sync_get_val(sync_noise, row);
+    C3D_ProcTexNoiseCoefs(&pt, C3D_ProcTex_U, 0.125f, 200, 1.0 * 0.0001);
+    C3D_ProcTexNoiseCoefs(&pt, C3D_ProcTex_V, 0.125f, 200, sync_noise_val * 0.00005);
+    C3D_ProcTexBind(0, &pt);    
 }
 
 void effectSun2Draw(float iod, float row) {
@@ -173,12 +178,15 @@ void effectSun2Draw(float iod, float row) {
     float sync_zoom_val = sync_get_val(sync_zoom, row);
     float sync_rotate_val = sync_get_val(sync_rotate, row);
     float sync_rotate2_val = sync_get_val(sync_rotate2, row);
-    float sync_noise_val = sync_get_val(sync_noise, row);
     float sync_fov_val = sync_get_val(sync_fov, row);
 
     // Projection matrix
     C3D_Mtx projection;
-    Mtx_PerspStereoTilt(&projection, (65.0f + sync_fov_val) * M_PI / 180.0f, 400.0f / 240.0f, 0.2f, 70000.0f, iod, 2.0f, false);
+    float znear = 0.2;
+    if(sync_rotate2_val > 0.1) {
+        znear = 4.2;
+    }
+    Mtx_PerspStereoTilt(&projection, (65.0f + sync_fov_val) * M_PI / 180.0f, 400.0f / 240.0f, znear, 2*95000.0f, iod, 2.0f, false);
     
     // Modelview matrix
     C3D_Mtx modelview;
@@ -195,7 +203,8 @@ void effectSun2Draw(float iod, float row) {
     
     // GPU state for additive blend
     C3D_DepthTest(false, GPU_GEQUAL, GPU_WRITE_COLOR);
-    C3D_AlphaBlend(GPU_BLEND_ADD, GPU_BLEND_ADD, GPU_ONE, GPU_ONE, GPU_ONE, GPU_ONE);
+//     C3D_AlphaBlend(GPU_BLEND_ADD, GPU_BLEND_ADD, GPU_ONE, GPU_ONE, GPU_ONE, GPU_ONE);
+    C3D_AlphaBlend(GPU_BLEND_ADD, GPU_BLEND_ADD, GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA);
     
     // Uniforms to shader
     C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLocProjectionSkybox, &projection);
@@ -264,11 +273,6 @@ void effectSun2Draw(float iod, float row) {
         C3D_DrawArrays(GPU_TRIANGLES, 0, numFacesSpaceStation * 3);
     }
     
-    // Proc tex update
-    C3D_ProcTexNoiseCoefs(&pt, C3D_ProcTex_U, 0.125f, 200, 1.0 * 0.0001);
-    C3D_ProcTexNoiseCoefs(&pt, C3D_ProcTex_V, 0.125f, 200, sync_noise_val * 0.00005);
-    C3D_ProcTexBind(0, &pt);
-    
     //resetShadeEnv();
     env = C3D_GetTexEnv(0);
     C3D_TexEnvInit(env);
@@ -320,8 +324,6 @@ void effectSun2Render(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRigh
     // Left eye
     C3D_FrameDrawOn(targetLeft);
     effectSun2Draw(-iod, row);
-    drawLogo(row);
-    fade();
       
     if(iod > 0.0) {
         // Right eye
@@ -330,6 +332,10 @@ void effectSun2Render(C3D_RenderTarget* targetLeft, C3D_RenderTarget* targetRigh
         drawLogo(row);
         fade();
     }
+    
+    C3D_FrameDrawOn(targetLeft);
+    drawLogo(row);
+    fade();
     
     // Ready to flip
     C3D_FrameEnd(0);
@@ -341,16 +347,16 @@ void effectSun2Exit() {
 //     gspWaitForPPF();
     
     // Free allocated memory
-    printf("vbo free\n");
+//     printf("vbo free\n");
     linearFree(vbo);
 
     // Free textures
-    printf("tex free\n");
+//     printf("tex free\n");
     C3D_TexDelete(&skybox_tex);
     C3D_TexDelete(&station_tex_col);
     C3D_TexDelete(&station_tex_norm);
     C3D_TexDelete(&tex_logo1);
     C3D_TexDelete(&tex_logo2);
     C3D_TexDelete(&tex_logo3);
-    printf("the problem is outside of this actually\n");
+//     printf("the problem is outside of this actually\n");
 }

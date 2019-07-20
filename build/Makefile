@@ -4,7 +4,7 @@ BASEDIR := ../
 # Binary name, author name, desc
 TARGET := nordlicht19
 AUTHOR := SVatG
-DESC := Raumfahrtaufgabenuebertragungsgesetz
+DESC := Skate Station
 
 # Working directories
 BUILD := $(BASEDIR)/build

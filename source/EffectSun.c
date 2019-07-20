@@ -149,8 +149,8 @@ void effectSunInit() {
     marchingCubesQueue = (gridloc*)malloc(GRID_SIZE * GRID_SIZE * GRID_SIZE * sizeof(gridloc));
     marchingCubesMarkNb = 0;
     
-    printf("%x %x %x %x\n", marchingCubesGrid, marchingCubesNormals, marchingCubesMarkGrid, marchingCubesQueue);
-    printf("----- %d %d %d\n", linearSpaceFree(), vramSpaceFree(), mappableSpaceFree());
+//     printf("%x %x %x %x\n", marchingCubesGrid, marchingCubesNormals, marchingCubesMarkGrid, marchingCubesQueue);
+//     printf("----- %d %d %d\n", linearSpaceFree(), vramSpaceFree(), mappableSpaceFree());
 //     printf("B");
     // Load statics
     loadObject2to1(numFacesSpaceRoom, facesSpaceRoom, verticesSpaceRoom, normalsSpaceRoom, texcoordsSpaceRoom, &metaballVBO[MAX_METABALL_VERTS]);
@@ -617,7 +617,7 @@ void effectSunExit() {
 //     gspWaitForP3D();
 //     gspWaitForPPF();
 // 
-    printf("Free tex\n");
+//     printf("Free tex\n");
     // Free textures
     C3D_TexDelete(&skybox_tex);
     C3D_TexDelete(&room_tex);
