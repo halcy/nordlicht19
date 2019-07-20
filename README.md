@@ -8,3 +8,5 @@ effect code by halcy, vector & 2d gfx code by WAHa_06x36, [rocket by various peo
 compile using a recent devkitpro, you may need to adjust paths in Makefile or various things in build/Makefile (sorry for the build system)
 
 license for code we own is just do whatever where "whatever" is make a 3DS demo
+
+More source files for the gfx comming soon!
