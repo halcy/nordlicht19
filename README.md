@@ -1,4 +1,4 @@
-# Raumfahrtaufgabenübertragungsgesetz
+# Skate Station
 
 source code for the 2019 SVatG demo "Skate Station" for Nintendo 3DS, as released, with no cleanup whatsoever
 
