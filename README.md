@@ -2,6 +2,8 @@
 
 source code for the 2019 SVatG demo "Skate Station" for Nintendo 3DS, as released, with no cleanup whatsoever
 
+Now released: https://demozoo.org/productions/230576/ (Video: https://www.youtube.com/watch?v=JeTrrkxz9ag )
+
 effect code by halcy, vector & 2d gfx code by WAHa_06x36, [rocket by various people](https://github.com/rocket/rocket) with 
 3DS support by halcy, gfx/3d by halcy, music by wrl
 
