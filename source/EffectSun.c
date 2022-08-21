@@ -46,13 +46,13 @@
 // }
 
 // Sync
-const struct sync_track* sync_anim_t;
-const struct sync_track* sync_anim_r;
-const struct sync_track* sync_anim_w;
-const struct sync_track* sync_anim_f;
-const struct sync_track* sync_rotate;
-const struct sync_track* sync_bright;
-const struct sync_track* sync_build;
+static const struct sync_track* sync_anim_t;
+static const struct sync_track* sync_anim_r;
+static const struct sync_track* sync_anim_w;
+static const struct sync_track* sync_anim_f;
+static const struct sync_track* sync_rotate;
+static const struct sync_track* sync_bright;
+static const struct sync_track* sync_build;
 
 // Marching cubes related
 float* marchingCubesGrid;
@@ -76,7 +76,7 @@ static int uLocModelviewSkybox;
 
 static C3D_Tex skybox_tex;
 static C3D_TexCube skybox_cube;
-int skyboxVertCount;
+static int skyboxVertCount;
 
 static C3D_Tex room_tex;
 

@@ -53,11 +53,11 @@ static vertex_rigged* vbo;
 static C3D_BufInfo* bufInfo;
 
 // Sync
-const struct sync_track* sync_zoom;
-const struct sync_track* sync_rotate;
-const struct sync_track* sync_movement;
-const struct sync_track* sync_stars;
-const struct sync_track* sync_starmax;
+static const struct sync_track* sync_zoom;
+static const struct sync_track* sync_rotate;
+static const struct sync_track* sync_movement;
+static const struct sync_track* sync_stars;
+static const struct sync_track* sync_starmax;
 
 // Stars!
 #define NUM_STARS 300

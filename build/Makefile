@@ -20,9 +20,9 @@ LIBS := -lcitro3d -lctru -lm
 VPATH := $(BUILD):$(SOURCES):$(DATA)
 
 # Tools
-CC := arm-none-eabi-gcc
-AS := arm-none-eabi-as
-NM := arm-none-eabi-nm
+CC := $(DEVKITARM)/bin/arm-none-eabi-gcc
+AS := $(DEVKITARM)/bin/arm-none-eabi-as
+NM := $(DEVKITARM)/bin/arm-none-eabi-nm
 LD := $(CC)
 
 # Tool flags
@@ -31,7 +31,7 @@ CFLAGS := -Wno-missing-braces -O3 \
           -std=c99 \
 	  -fomit-frame-pointer -ffunction-sections \
 	  -mfloat-abi=hard -ffast-math \
-	  $(ARCH) -DARM11 -D_3DS \
+	  $(ARCH) -D__3DS__ \
 	  -DABGR32Pixels \
 	  $(foreach dir,$(LIBDIRS),-I$(dir)/include) -I$(BUILD)
 ASFLAGS := 
@@ -73,7 +73,7 @@ clean:
 	
 # Basic "binary blob" build rule
 %.bin.o: %.bin
-	bin2s $< | $(AS) -o $(@)
+	$(DEVKITPRO)/tools/bin/bin2s $< | $(AS) -o $(@)
 	echo "extern const u8" `(echo $(<F) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`"_end[];" > `(echo $(<F) | tr . _)`.h
 	echo "extern const u8" `(echo $(<F) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`"[];" >> `(echo $(<F) | tr . _)`.h
 	echo "extern const u32" `(echo $(<F) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`_size";" >> `(echo $(<F) | tr . _)`.h
@@ -81,8 +81,8 @@ clean:
 # GPU shader assembly.
 define shader-as
 	$(eval CURBIN := $(patsubst %.shbin.o,%.shbin,$(notdir $@)))
-	picasso -o $(CURBIN) $1
-	bin2s $(CURBIN) | $(AS) -o $@
+	$(DEVKITPRO)/tools/bin/picasso -o $(CURBIN) $1
+	$(DEVKITPRO)/tools/bin/bin2s $(CURBIN) | $(AS) -o $@
 	echo "extern const u8" `(echo $(CURBIN) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`"_end[];" > `(echo $(CURBIN) | tr . _)`.h
 	echo "extern const u8" `(echo $(CURBIN) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`"[];" >> `(echo $(CURBIN) | tr . _)`.h
 	echo "extern const u32" `(echo $(CURBIN) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`_size";" >> `(echo $(CURBIN) | tr . _)`.h
@@ -99,11 +99,11 @@ endef
 
 # App metainfo
 %.smdh: $(APP_ICON) $(MAKEFILE_LIST)
-	smdhtool --create "$(TARGET)" "$(DESC)" "$(AUTHOR)" $(BASEDIR)/icon.png $@
+	$(DEVKITPRO)/tools/bin/smdhtool --create "$(TARGET)" "$(DESC)" "$(AUTHOR)" $(BASEDIR)/icon.png $@
 
 # Binary from elf build rule
 %.3dsx: %.elf
-	3dsxtool $< --smdh=$(BASEDIR)build/$(TARGET).smdh --romfs=$(BASEDIR)romfs/ $(_3DSXFLAGS) $@
+	$(DEVKITPRO)/tools/bin/3dsxtool $< --smdh=$(BASEDIR)build/$(TARGET).smdh --romfs=$(BASEDIR)romfs/ $(_3DSXFLAGS) $@
 
 # Linking rule
 %.elf: 

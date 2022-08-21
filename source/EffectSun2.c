@@ -24,7 +24,7 @@ static int uLocModelviewSkybox;
 
 static C3D_Tex skybox_tex;
 static C3D_TexCube skybox_cube;
-int skyboxVertCount;
+static int skyboxVertCount;
 
 static C3D_Tex station_tex_col;
 static C3D_Tex station_tex_norm;
@@ -55,12 +55,12 @@ static vertex2* vbo;
 static C3D_BufInfo* bufInfo;
 
 // Sync
-const struct sync_track* sync_zoom;
-const struct sync_track* sync_rotate;
-const struct sync_track* sync_rotate2;
-const struct sync_track* sync_noise;
-const struct sync_track* sync_fov;
-const struct sync_track* sync_logo;
+static const struct sync_track* sync_zoom;
+static const struct sync_track* sync_rotate;
+static const struct sync_track* sync_rotate2;
+static const struct sync_track* sync_noise;
+static const struct sync_track* sync_fov;
+static const struct sync_track* sync_logo;
 
 static C3D_Tex tex_logo1;
 static C3D_Tex tex_logo2;

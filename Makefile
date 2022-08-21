@@ -14,7 +14,7 @@ binary:
 	cp build/*.3dsx .
 	
 upload: binary
-	3dslink -a $(3DS_IP) nordlicht19.3dsx
+	$(DEVKITPRO)/tools/bin/3dslink -a $(3DS_IP) nordlicht19.3dsx
 	
 test: binary
 	cp nordlicht19.3dsx run.3dsx
