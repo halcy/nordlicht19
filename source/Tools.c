@@ -2,6 +2,9 @@
 #include "vshader_flat_shbin.h"
 #include "Perlin.h"
 
+// Sync
+struct sync_device *rocket;
+
 int RandomInteger() {
     return rand();
 }

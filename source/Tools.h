@@ -38,7 +38,7 @@
 #include "TextureHack.h"
 
 #include "Rocket/sync.h"
-struct sync_device *rocket;
+extern struct sync_device *rocket;
 
 #define SCREEN_WIDTH 400
 #define SCREEN_HEIGHT 240

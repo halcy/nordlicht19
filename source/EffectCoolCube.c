@@ -38,7 +38,7 @@ static int uLocModelviewSkybox;
 
 static C3D_Tex skybox_tex;
 static C3D_TexCube skybox_cube;
-int skyboxVertCount;
+static int skyboxVertCount;
 
 int cometsStart;
 int cometsVertCount;
@@ -78,10 +78,10 @@ static vertex2* vbo;
 static C3D_BufInfo* bufInfo;
 
 // Sync
-const struct sync_track* sync_zoom;
-const struct sync_track* sync_rotate;
-const struct sync_track* sync_comets;
-const struct sync_track* sync_scroll;
+static const struct sync_track* sync_zoom;
+static const struct sync_track* sync_rotate;
+static const struct sync_track* sync_comets;
+static const struct sync_track* sync_scroll;
 
 void effectCoolCubeInit() {
 //     printf("INIT BEGINS.\n");
